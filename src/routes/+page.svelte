@@ -20,7 +20,7 @@
   const recent = $derived(nowPlaying.data.history.filter((h) => !(h.title === track.title && h.artist === track.artist)).slice(0, 6));
 </script>
 
-<div class="safe-top mx-auto w-full max-w-lg px-5">
+<div class="mx-auto w-full max-w-lg px-5">
   <!-- Station header -->
   <header class="flex items-center justify-between pt-5 pb-6">
     <div>

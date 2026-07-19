@@ -23,7 +23,7 @@
   const showsToday = $derived(selected === today);
 </script>
 
-<div class="safe-top mx-auto w-full max-w-lg px-5 pt-6 pb-8">
+<div class="mx-auto w-full max-w-lg px-5 pt-6 pb-8">
   <header class="flex items-start justify-between gap-4">
     <div>
       <div class="elite text-signal mb-2 text-[10px] tracking-[0.3em] uppercase">This week</div>

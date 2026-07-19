@@ -56,9 +56,16 @@
     color: var(--color-ink);
   }
 
-  /* Every fixed edge respects the notch and the home indicator. */
-  .safe-top {
+  /* Safe-area insets are applied once, on the layout's <main> and <nav> — never
+     on a page container that also carries a Tailwind pt-*/pb-* utility. Those
+     utilities live in @layer utilities and beat anything declared here, so a
+     `class="safe-top pt-6"` element silently loses its notch inset and slides
+     under the status bar. Keeping the insets on elements with no competing
+     padding utility is what makes this reliable. */
+  .app-main {
     padding-top: env(safe-area-inset-top, 0px);
+    /* Clears the fixed bottom nav (4rem) plus the home indicator. */
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);

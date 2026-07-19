@@ -23,7 +23,7 @@
   const format = $derived(nowPlaying.data.format);
 </script>
 
-<div class="safe-top mx-auto w-full max-w-lg px-5 pt-6 pb-8">
+<div class="mx-auto w-full max-w-lg px-5 pt-6 pb-8">
   <header>
     <div class="elite text-signal mb-2 text-[10px] tracking-[0.3em] uppercase">Since 2007</div>
     <h1 class="stencil text-bone text-4xl leading-[0.85]">

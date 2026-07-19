@@ -45,7 +45,7 @@
 </script>
 
 <div class="bg-ink flex min-h-dvh flex-col">
-  <main class="flex-1 pb-20">
+  <main class="app-main flex-1">
     {@render children()}
   </main>
 
