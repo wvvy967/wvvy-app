@@ -1,35 +1,27 @@
 /// <reference types="vitest/config" />
 
-import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
-import { VitePWA } from 'vite-plugin-pwa';
+
+// Kit options (adapter, paths, runes) live in svelte.config.js — see the note
+// there for why they can't be inline here.
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    sveltekit({
-      compilerOptions: {
-        // Force runes mode for the project, except for libraries. Can be removed in svelte 6.
-        runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
-      },
-
-      // Capacitor ships a static bundle inside the native webview — there is no
-      // server at runtime, so every route is prerendered to its own file. No
-      // fallback: it would overwrite the prerendered index.html with an empty
-      // shell, and with every route prerendered there is nothing to fall back to.
-      adapter: adapter(),
-
-      // Native webviews load from capacitor:// (iOS) or http://localhost
-      // (Android); absolute asset paths break there, so keep everything relative.
-      paths: { relative: true }
-    }),
-    svelteTesting(),
-    VitePWA({
+    sveltekit(),
+    // SvelteKitPWA rather than plain VitePWA: the static adapter writes the
+    // prerendered HTML after Vite's build finishes, so a plain Workbox glob runs
+    // too early and precaches zero HTML — leaving the app broken offline. This
+    // integration hooks the adapter's output instead.
+    SvelteKitPWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // Registration happens in src/lib/pwa.ts so it can be skipped inside the
+      // Capacitor shell, where a service worker only adds a stale-cache risk.
+      injectRegister: null,
       manifestFilename: 'manifest.json',
       includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],
       manifest: {
@@ -40,8 +32,8 @@ export default defineConfig({
         background_color: '#0a0908',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '.',
-        scope: '.',
+        start_url: '/',
+        scope: '/',
         categories: ['music', 'entertainment'],
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
@@ -53,7 +45,9 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: 'index.html',
+        // Any navigation that misses the precache falls back to the app shell,
+        // which is what makes a client-routed SPA work offline.
+        navigateFallback: '/',
         runtimeCaching: [
           {
             // The now-playing feed and the Icecast mount must always hit the
@@ -65,7 +59,8 @@ export default defineConfig({
         ]
       },
       devOptions: { enabled: false }
-    })
+    }),
+    svelteTesting()
   ],
   test: {
     globals: true,

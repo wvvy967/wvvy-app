@@ -7,6 +7,7 @@
   import { player } from '$lib/stores/player.svelte';
   import { nowPlaying } from '$lib/stores/nowplaying.svelte';
   import { initNativeShell, isNative } from '$lib/native';
+  import { registerPWA } from '$lib/pwa';
 
   let { children } = $props();
 
@@ -31,6 +32,7 @@
 
     const teardowns = [player.init(), player.bindKeyboard(), nowPlaying.start()];
     void initNativeShell();
+    void registerPWA();
 
     return () => teardowns.forEach((fn) => fn());
   });
