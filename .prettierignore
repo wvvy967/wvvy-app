@@ -1,0 +1,6 @@
+build/
+.svelte-kit/
+node_modules/
+ios/
+android/
+package-lock.json

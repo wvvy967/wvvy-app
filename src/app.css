@@ -1,0 +1,159 @@
+@import 'tailwindcss';
+
+/* WVVY brand tokens, carried over from wvvy.org so the app and the site read as
+   one station. The app drops the site's CRT/grain treatment — heavy fixed
+   overlays cost battery and fight the OS chrome on a phone — but keeps the
+   palette, the stencil/typewriter type pairing, and the ON AIR bulb. */
+@theme {
+  --color-ink: #0a0908;
+  --color-tar: #141210;
+  --color-soot: #1c1a18;
+  --color-bone: #ece5d8;
+  --color-paper: #d8d0bf;
+  --color-smoke: #5a5852;
+  --color-signal: #c4ff3d;
+  --color-signal-dim: #7ba310;
+  --color-rust: #c43a1f;
+  --color-blood: #8a1a0a;
+  --color-amber: #f0a500;
+
+  --font-stencil: 'Big Shoulders Stencil', 'Impact', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-elite: 'Special Elite', 'Courier New', monospace;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-bone);
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    overflow-x: hidden;
+    /* Native shells only: kill the rubber-band scroll and the long-press
+       callout so the webview stops feeling like a browser. */
+    overscroll-behavior-y: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Text selection is a desktop affordance; on a player it just gets in the way
+     of taps. Re-enabled per-element where copying matters (mailing address). */
+  body:not(.is-web) * {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .selectable,
+  .selectable * {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
+  ::selection {
+    background-color: var(--color-signal);
+    color: var(--color-ink);
+  }
+
+  /* Every fixed edge respects the notch and the home indicator. */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+.stencil {
+  font-family: var(--font-stencil);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 0.85;
+}
+
+.elite {
+  font-family: var(--font-elite);
+}
+
+/* Brutalist frame with corner notches — the site's signature container. */
+.brutal-frame {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--color-bone) 22%, transparent);
+}
+.brutal-frame::before,
+.brutal-frame::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--color-signal);
+}
+.brutal-frame::before {
+  top: -6px;
+  left: -6px;
+  border-right: none;
+  border-bottom: none;
+}
+.brutal-frame::after {
+  bottom: -6px;
+  right: -6px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ON AIR bulb */
+@keyframes on-air {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 var(--color-rust),
+      0 0 24px 2px rgba(196, 58, 31, 0.55);
+    background-color: var(--color-rust);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(196, 58, 31, 0),
+      0 0 6px 0 rgba(196, 58, 31, 0.2);
+    background-color: var(--color-blood);
+  }
+}
+.on-air {
+  animation: on-air 1.6s ease-in-out infinite;
+}
+
+/* Playing-state equaliser bars */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.18);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.eq-bar {
+  animation: eq 0.9s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* Indeterminate sweep for connecting/reconnecting states */
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+.sweep {
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .on-air,
+  .eq-bar,
+  .sweep {
+    animation: none !important;
+  }
+}

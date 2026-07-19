@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0908"/>
+  <g font-family="'Big Shoulders Stencil', Impact, sans-serif" font-weight="900" text-anchor="middle" fill="#c4ff3d">
+    <text x="256" y="248" font-size="150" letter-spacing="-4">WVVY</text>
+    <text x="256" y="340" font-size="72" fill="#ece5d8" letter-spacing="8">96.7</text>
+    <text x="256" y="400" font-size="36" fill="#ece5d8" opacity="0.7" letter-spacing="14">LPFM</text>
+  </g>
+</svg>

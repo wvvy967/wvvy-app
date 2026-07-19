@@ -1,0 +1,50 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Native projects
+#
+# ios/ and android/ ARE committed. They hold hand-written configuration that
+# `npx cap add` does not regenerate — the AVAudioSession setup in
+# AppDelegate.swift, UIBackgroundModes in Info.plist, and the foreground-service
+# permissions in AndroidManifest.xml. Ignoring them would silently discard the
+# background-audio config on a fresh clone. Only the build products are ignored.
+ios/App/App/public/
+ios/App/Pods/
+ios/App/build/
+ios/App/output/
+ios/App/App/capacitor.config.json
+ios/DerivedData/
+ios/.build/
+*.xcuserdatad
+xcuserdata/
+
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/build/
+android/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/capacitor-cordova-android-plugins/
