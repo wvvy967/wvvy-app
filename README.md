@@ -32,6 +32,36 @@ npm run all          # format → lint → check → test → build
 | `/support`  | Donate — Venmo, PayPal, check by mail, 501(c)(3) receipt info            |
 | `/about`    | Station info, get involved, stream URLs for other players, signal detail |
 
+## PWA
+
+The web target is an installable PWA — same codebase, no separate build. The app
+shell (all four routes, icons, JS, CSS) is precached, so it opens offline; the
+stream and now-playing feed are `NetworkOnly`, because a cached "now playing" is
+worse than none.
+
+Two integration details worth knowing before touching the config, both of which
+fail _silently_:
+
+- **`@vite-pwa/sveltekit`, not plain `vite-plugin-pwa`.** The static adapter
+  writes prerendered HTML after Vite's build finishes, so a plain Workbox glob
+  runs too early and precaches zero HTML — the service worker installs, looks
+  healthy, and the app still dies offline.
+- **Registration and the manifest link are wired by hand** (`src/lib/pwa.ts` and
+  `src/app.html`). `injectRegister` targets the plugin's own `index.html`, which
+  SvelteKit overwrites, so auto-injection never lands.
+
+Registration is skipped inside Capacitor: the bundle is already on the device,
+and a service worker there only adds a cache layer that can serve a stale build
+after an app update.
+
+To verify offline after a change — emulated offline in DevTools is not reliable
+here, so stop the server instead:
+
+```bash
+npm run build && npx vite preview --port 5200
+# load the page, wait for the SW to activate, then kill the server and reload
+```
+
 ## Native builds
 
 ```bash
