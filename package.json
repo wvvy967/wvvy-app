@@ -15,6 +15,8 @@
     "sync": "cap sync",
     "sync:ios": "cap sync ios",
     "sync:android": "cap sync android",
+    "#Icons": "Regenerate every launcher icon and splash from assets/ — see assets/README.md",
+    "assets": "capacitor-assets generate --ios --android",
     "#Native open": "Build, sync, then open the platform IDE",
     "ios": "run-s build sync:ios open:ios",
     "android": "run-s build sync:android open:android",
@@ -31,6 +33,7 @@
     "all": "npm run format && npm run lint && npm run check && npm run test && npm run build"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.4.2",
     "@eslint/js": "^10.0.1",
     "@sveltejs/adapter-static": "^3.0.10",
