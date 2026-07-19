@@ -11,8 +11,15 @@
   // screen sits open — a schedule is exactly the screen someone leaves up.
   let now = $state(currentHour());
 
+  // The seven day tabs overflow a phone's width, and the selected day defaults
+  // to today — which for late-week days sits off-screen, so the screen opens
+  // looking like nothing is selected. Bring it into view on mount.
+  let tablist = $state<HTMLDivElement | null>(null);
+
   onMount(() => {
     void scheduleFeed.load();
+    // `block: 'nearest'` keeps this from scrolling the page vertically as well.
+    tablist?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
     const timer = setInterval(() => (now = currentHour()), 60_000);
     return () => clearInterval(timer);
   });
@@ -38,7 +45,7 @@
 
   <!-- Day picker. Scrolls horizontally so seven days fit any phone width. -->
   <div class="-mx-5 mt-6 overflow-x-auto px-5">
-    <div class="flex min-w-max gap-2" role="tablist" aria-label="Day of week">
+    <div bind:this={tablist} class="flex min-w-max gap-2" role="tablist" aria-label="Day of week">
       {#each DAYS as day (day)}
         {@const active = day === selected}
         <button
