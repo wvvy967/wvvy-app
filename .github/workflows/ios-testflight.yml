@@ -20,7 +20,11 @@ concurrency:
 
 jobs:
   build:
-    runs-on: macos-15
+    # Must carry Xcode 26+/iOS 26 SDK: App Store Connect rejects uploads built
+    # against anything older with a 409 at the altool stage — after a full
+    # successful archive and export, so the failure surfaces late and expensively.
+    # macos-15 ships Xcode 16.4 (iOS 18.5 SDK) and does not qualify.
+    runs-on: macos-26
     timeout-minutes: 45
 
     env:
@@ -31,6 +35,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+
+      # Fail fast and loudly if the runner image ever drifts back below the SDK
+      # floor Apple enforces, rather than burning a full build to find out.
+      - name: Verify toolchain
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i "iphoneos" || true
+          SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+          echo "iOS SDK: $SDK_VERSION"
+          if [ "${SDK_VERSION%%.*}" -lt 26 ]; then
+            echo "::error::iOS SDK $SDK_VERSION is below the iOS 26 minimum App Store Connect requires."
+            exit 1
+          fi
 
       - uses: actions/setup-node@v5
         with:
