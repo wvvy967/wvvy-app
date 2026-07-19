@@ -73,6 +73,11 @@ npm run android      # build → sync → open Android Studio
 hand-written background-audio configuration that `npx cap add` does not
 reproduce. See [docs/native-audio.md](docs/native-audio.md).
 
+The iOS scheme at `ios/App/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme` is
+committed for the same reason CI needs it: an unshared scheme lives in
+`xcuserdata/`, which is ignored, so `xcodebuild -scheme App` fails on a fresh
+clone with nothing but "scheme not found".
+
 ### Android prerequisites
 
 Android builds need a **JDK 21** and Android Studio; neither is required for iOS
@@ -121,6 +126,32 @@ with a static fallback in `src/lib/schedule.ts` if the sheet is unreachable — 
 UI says which one it's showing rather than passing stale times off as live.
 
 Station constants live in `src/lib/station.ts`.
+
+## Releasing
+
+iOS ships from GitHub Actions, not from a developer's Xcode:
+
+```bash
+gh workflow run "iOS TestFlight" -f upload=true    # → TestFlight
+gh workflow run "iOS TestFlight" -f upload=false   # build and export only
+```
+
+Build numbers come from the workflow run number, so they increment on their own;
+`1.0` in the Xcode project is the only version anyone edits. There is no trigger
+on push to `main` — most commits don't need a three-minute iOS build.
+
+Signing material comes from repository secrets rather than a developer's
+keychain, so nothing in the release path depends on being signed into an Apple
+ID in Xcode. Two constraints are worth knowing before touching the workflow,
+because both fail in ways that point away from their cause:
+
+- The App Store Connect API key needs the **Admin** role. App Manager can upload
+  builds but cannot manage provisioning profiles, and the resulting export error
+  reads as a missing profile rather than a permissions problem.
+- The runner needs **Xcode 26 or newer**. Older SDKs archive and export
+  successfully, then Apple rejects the upload at validation. The workflow pins
+  `macos-26` and fails fast on a toolchain check rather than discovering this
+  after a full build.
 
 ## Testing
 
