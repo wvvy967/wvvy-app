@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Consumed by `xcodebuild -exportArchive` in .github/workflows/ios-testflight.yml.
+	     `app-store-connect` is the Xcode 15.3+ name for what used to be `app-store`;
+	     older docs and blog posts still say `app-store`, which now warns. -->
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>teamID</key>
+	<string>9DTLYZS258</string>
+	<!-- Automatic signing works in CI only because the workflow imports the
+	     distribution cert's private key first and passes an App Store Connect
+	     API key with -allowProvisioningUpdates, letting Xcode fetch the
+	     provisioning profile instead of us pinning a profile name here. -->
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<!-- The workflow uploads via altool as a separate, retryable step. -->
+	<key>uploadSymbols</key>
+	<true/>
+	<key>destination</key>
+	<string>export</string>
+</dict>
+</plist>
