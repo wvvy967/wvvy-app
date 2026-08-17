@@ -65,9 +65,25 @@ jobs:
         run: npx cap sync ios
 
       # Signing assets live only for the life of this job, in a throwaway
-      # keychain. Importing the real distribution cert (rather than letting
-      # Xcode mint one) matters: Apple caps you at 3 distribution certificates,
-      # and a CI job that creates a fresh one per run exhausts that cap fast.
+      # keychain.
+      #
+      # The .p12 behind IOS_DIST_CERT_P12_BASE64 deliberately carries **two**
+      # identities — Apple Distribution *and* Apple Development — sharing one
+      # private key, because both certificates were issued from the same CSR.
+      #
+      # The development half signs nothing. It is there so automatic signing
+      # finds an existing development identity in the keychain. Without it,
+      # `-allowProvisioningUpdates` quietly mints a brand new Apple Development
+      # certificate on every run: the project carries Capacitor's default
+      # `CODE_SIGN_IDENTITY = "iPhone Developer"`, so Xcode goes looking for a
+      # development identity even when archiving Release, finds none, and creates
+      # one. Nothing warns you. Six certificates had accumulated from this
+      # workflow alone before the account hit Apple's cap and every archive began
+      # failing with "Choose a certificate to revoke".
+      #
+      # Importing the real certificates rather than letting Xcode create them is
+      # the point: Apple caps distribution certificates at 3, development ones at
+      # around a dozen.
       - name: Import signing certificate
         env:
           CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
