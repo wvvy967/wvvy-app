@@ -7,6 +7,7 @@ export const STATION = {
   shortName: 'WVVY',
   frequency: '96.7',
   legalName: 'WVVY-LP',
+  licensee: 'Martha’s Vineyard Community Radio, Inc.',
   tagline: 'Free-form community radio',
   city: 'Tisbury, MA 02568',
   location: 'Tisbury, Martha’s Vineyard',

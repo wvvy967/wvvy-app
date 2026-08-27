@@ -33,6 +33,9 @@
       Low-power community radio broadcasting from {STATION.location}. Free-form and no-format — every show is programmed by a volunteer from the island, playing whatever they brought with them. No
       ads, no underwriters, no corporate playlist.
     </p>
+    <p class="elite text-bone/40 mt-4 text-xs leading-relaxed">
+      The official app of {STATION.name}, licensed by {STATION.licensee}. It streams only WVVY’s own broadcast.
+    </p>
   </header>
 
   <!-- Get involved -->
