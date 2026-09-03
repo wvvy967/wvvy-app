@@ -74,11 +74,13 @@
     </div>
   </header>
 
-  <!-- The art is square but must never push the play control below the fold on a
-       short screen (iPhone SE and friends). Capping the side at 40dvh keeps the
-       header, track info, and transport in one viewport on every phone; on taller
-       screens the width becomes the limit again and the art fills the column. -->
-  <div class="mx-auto w-full" style="max-width: min(100%, 40dvh)">
+  <!-- The art is square but must never push the transport — play control AND the
+       volume slider below it — off-screen. Capping the side at 32dvh keeps the
+       header, track info, and the whole transport in one viewport on every phone
+       (there is no scroll cue, so the slider must be visible without scrolling);
+       on taller screens the width becomes the limit again and the art fills the
+       column. -->
+  <div class="mx-auto w-full" style="max-width: min(100%, 32dvh)">
     <AlbumArt src={track.art} alt={known ? `${track.artist} — ${track.title}` : ''} playing={player.isPlaying} />
   </div>
 
@@ -107,32 +109,19 @@
   <section class="mt-8 flex flex-col items-center">
     <PlayButton />
 
-    <!-- Status line. Fixed height so the layout doesn't jump as it changes. -->
-    <div class="mt-4 flex h-5 items-center justify-center">
-      {#if player.error}
-        <p class="elite text-rust flex items-center gap-1.5 text-xs" role="alert">
-          <TriangleAlert size={13} />
-          {player.error}
-        </p>
-      {:else if player.isBusy}
-        <p class="elite text-bone/50 text-[10px] tracking-[0.3em] uppercase">
-          {player.state.status === 'reconnecting' ? 'Reconnecting…' : 'Connecting…'}
-        </p>
-      {:else if player.isPlaying}
-        <p class="elite text-signal/70 text-[10px] tracking-[0.3em] uppercase">Streaming Live</p>
-      {/if}
-    </div>
-
-    <!-- iOS: a native MPVolumeView is overlaid on this placeholder, so the
+    <!-- Volume sits directly under the play button so it reads as part of the
+         transport, not a stray control. Its position is fixed regardless of play
+         state (the status line below absorbs the changes).
+         iOS: a native MPVolumeView is overlaid on this placeholder, so the
          on-screen slider drives the system volume and tracks the hardware
          buttons. The box must have a fixed height for the native view to fill. -->
     {#if useNativeVolume}
-      <div class="mt-5 flex w-full max-w-xs items-center gap-3">
+      <div class="mt-4 flex w-full max-w-xs items-center gap-3">
         <Volume2 size={16} class="text-bone/40 shrink-0" />
         <capacitor-volume-slider bind:this={volumeEl} class="block h-7 w-full" aria-label="Volume"></capacitor-volume-slider>
       </div>
     {:else if player.canSetVolume}
-      <div class="mt-5 flex w-full max-w-xs items-center gap-3">
+      <div class="mt-4 flex w-full max-w-xs items-center gap-3">
         <Volume2 size={16} class="text-bone/40 shrink-0" />
         <input
           type="range"
@@ -146,6 +135,23 @@
         />
       </div>
     {/if}
+
+    <!-- Status line, below the transport. Fixed height so the layout doesn't jump
+         as it changes between idle / connecting / streaming / error. -->
+    <div class="mt-3 flex h-5 items-center justify-center">
+      {#if player.error}
+        <p class="elite text-rust flex items-center gap-1.5 text-xs" role="alert">
+          <TriangleAlert size={13} />
+          {player.error}
+        </p>
+      {:else if player.isBusy}
+        <p class="elite text-bone/50 text-[10px] tracking-[0.3em] uppercase">
+          {player.state.status === 'reconnecting' ? 'Reconnecting…' : 'Connecting…'}
+        </p>
+      {:else if player.isPlaying}
+        <p class="elite text-signal/70 text-[10px] tracking-[0.3em] uppercase">Streaming Live</p>
+      {/if}
+    </div>
   </section>
 
   <!-- Recently played -->

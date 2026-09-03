@@ -6,6 +6,7 @@ Not committed (covered by global gitignore, like CLAUDE.md).
 Fill the `[bracketed]` placeholders before pasting.
 
 Confirmed FCC facts:
+
 - Licensee legal name (501(c)(3)): **Martha's Vineyard Community Radio, Inc.**
 - Call sign WVVY-LP · Facility ID 135357 · FRN 0019573492 · Tisbury, MA · 96.7 MHz
 
@@ -29,8 +30,9 @@ Attach exactly these two FCC PDFs (both pulled and verified):
 
 The two FCC PDFs together prove the full 5.2.3 chain: a currently-valid license,
 held by the named licensee, on WVVY's actual frequency (96.7). The "REFERENCE COPY
+
 - Not for submission" watermark only means "don't re-file to the FCC"; as evidence
-for Apple these official records are fine.
+  for Apple these official records are fine.
 
 ### DO NOT attach these
 
@@ -111,6 +113,7 @@ capability only so playback continues on the lock screen, standard for a radio
 player.
 
 EXTERNAL SERVICES
+
 - Live audio stream + now-playing metadata: the station's self-hosted AzuraCast
   install at radio.wvvy.org (owned and operated by the station).
 - DJ schedule: a published Google Sheet the station manager maintains (read-only;
