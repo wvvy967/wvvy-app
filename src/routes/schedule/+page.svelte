@@ -1,33 +1,23 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { CalendarX, RefreshCw } from '@lucide/svelte';
-  import { DAYS, currentDay, currentHour, isOnNow, type Day } from '$lib/schedule';
+  import { RefreshCw } from '@lucide/svelte';
+  import { DAY_FULL, currentDay, currentHour, isOnNow, weekFrom } from '$lib/schedule';
   import { scheduleFeed } from '$lib/stores/schedule.svelte';
 
   const today = currentDay();
-  let selected = $state<Day>(today);
+  // The whole week, ordered so today leads — no day picker to scroll through, and
+  // what's on now (and coming up) is at the top without hunting for it.
+  const week = weekFrom(today);
 
   // Recomputed once a minute so the "ON NOW" badge doesn't go stale while the
   // screen sits open — a schedule is exactly the screen someone leaves up.
   let now = $state(currentHour());
 
-  // The seven day tabs overflow a phone's width, and the selected day defaults
-  // to today — which for late-week days sits off-screen, so the screen opens
-  // looking like nothing is selected. Bring it into view on mount.
-  let tablist = $state<HTMLDivElement | null>(null);
-
   onMount(() => {
     void scheduleFeed.load();
-    // `block: 'nearest'` keeps this from scrolling the page vertically as well.
-    tablist?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
     const timer = setInterval(() => (now = currentHour()), 60_000);
     return () => clearInterval(timer);
   });
-
-  const shows = $derived(scheduleFeed.data[selected] ?? []);
-  // "On now" only applies to today's column — Friday's 8 PM show isn't on air
-  // just because it's 8 PM on a Tuesday.
-  const showsToday = $derived(selected === today);
 </script>
 
 <div class="mx-auto w-full max-w-lg px-5 pt-6 pb-8">
@@ -43,71 +33,57 @@
     </button>
   </header>
 
-  <!-- Day picker. Scrolls horizontally so seven days fit any phone width. -->
-  <div class="-mx-5 mt-6 overflow-x-auto px-5">
-    <div bind:this={tablist} class="flex min-w-max gap-2" role="tablist" aria-label="Day of week">
-      {#each DAYS as day (day)}
-        {@const active = day === selected}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={active}
-          onclick={() => (selected = day)}
-          class={[
-            'elite border px-3.5 py-2 text-[11px] tracking-[0.2em] uppercase transition-colors',
-            active ? 'border-signal bg-signal text-ink' : 'border-bone/20 text-bone/60 hover:border-bone/40 hover:text-bone'
-          ]}
-        >
-          {day}
-          {#if day === today}
-            <span class={['ml-1', active ? 'text-ink/60' : 'text-signal']}>•</span>
+  <!-- The full week, today first. Each day is its own section; days with no live
+       show still appear so the week reads as complete. -->
+  <div class="mt-7 flex flex-col gap-7">
+    {#each week as day (day)}
+      {@const shows = scheduleFeed.data[day] ?? []}
+      {@const isToday = day === today}
+      <section aria-label={DAY_FULL[day]}>
+        <div class="border-bone/10 mb-3 flex items-baseline justify-between border-b pb-2">
+          <h2 class={['stencil text-2xl leading-none', isToday ? 'text-signal' : 'text-bone/80']}>
+            {DAY_FULL[day]}
+          </h2>
+          {#if isToday}
+            <span class="elite text-signal/80 text-[10px] tracking-[0.25em] uppercase">Today</span>
           {/if}
-        </button>
-      {/each}
-    </div>
-  </div>
+        </div>
 
-  <!-- Shows -->
-  <section class="mt-7">
-    {#if shows.length === 0}
-      <div class="border-bone/12 text-bone/40 flex flex-col items-center gap-3 border border-dashed px-6 py-12 text-center">
-        <CalendarX size={28} strokeWidth={1.2} />
-        <p class="elite text-sm">No scheduled shows on {selected}.</p>
-        <p class="elite text-xs">Automated rotation is on the air.</p>
-      </div>
-    {:else}
-      <ul class="flex flex-col gap-3">
-        {#each shows as show (`${show.show}-${show.start}`)}
-          {@const onNow = showsToday && isOnNow(show, now)}
-          <li class={['brutal-frame bg-tar/60 p-4', onNow && 'border-signal/60']}>
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <h2 class="stencil text-bone text-xl leading-tight">{show.show}</h2>
-                {#if show.dj}
-                  <p class="elite text-bone/55 mt-1.5 text-xs tracking-[0.15em] uppercase">
-                    DJ {show.dj}
-                  </p>
-                {/if}
-              </div>
-              {#if onNow}
-                <span class="elite bg-rust text-bone shrink-0 px-2 py-1 text-[9px] tracking-[0.2em] uppercase"> On Now </span>
-              {/if}
-            </div>
-            <p class={['elite mt-3 text-sm tabular-nums', onNow ? 'text-signal' : 'text-bone/70']}>
-              {show.display}
-            </p>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </section>
+        {#if shows.length === 0}
+          <p class="elite text-bone/30 text-xs tracking-[0.1em]">Automated rotation — no live show</p>
+        {:else}
+          <ul class="flex flex-col gap-2.5">
+            {#each shows as show (`${show.show}-${show.start}`)}
+              {@const onNow = isToday && isOnNow(show, now)}
+              <li class={['brutal-frame bg-tar/60 p-4', onNow && 'border-signal/60']}>
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h3 class="stencil text-bone text-lg leading-tight">{show.show}</h3>
+                    {#if show.dj}
+                      <p class="elite text-bone/55 mt-1.5 text-xs tracking-[0.15em] uppercase">DJ {show.dj}</p>
+                    {/if}
+                  </div>
+                  {#if onNow}
+                    <span class="elite bg-rust text-bone shrink-0 px-2 py-1 text-[9px] tracking-[0.2em] uppercase">On Now</span>
+                  {/if}
+                </div>
+                <p class={['elite mt-3 text-sm tabular-nums', onNow ? 'text-signal' : 'text-bone/70']}>
+                  {show.display}
+                </p>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </section>
+    {/each}
+  </div>
 
   <!-- Provenance. The static fallback is a week-old snapshot, so say so rather
        than presenting it as the live schedule. -->
   {#if scheduleFeed.error}
-    <p class="elite text-amber/70 mt-6 text-center text-[10px] leading-relaxed tracking-[0.15em] uppercase">Live schedule unavailable — showing last known times</p>
+    <p class="elite text-amber/70 mt-8 text-center text-[10px] leading-relaxed tracking-[0.15em] uppercase">Live schedule unavailable — showing last known times</p>
   {:else if scheduleFeed.source === 'sheet'}
-    <p class="elite text-bone/25 mt-6 text-center text-[10px] tracking-[0.2em] uppercase">Live from the station schedule</p>
+    <p class="elite text-bone/25 mt-8 text-center text-[10px] tracking-[0.2em] uppercase">Live from the station schedule</p>
   {/if}
 
   <p class="elite text-bone/30 mt-4 text-center text-xs leading-relaxed">Times are Eastern. Shows change — when nothing is scheduled, automated rotation keeps 96.7 on the air.</p>

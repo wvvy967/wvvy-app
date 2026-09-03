@@ -13,6 +13,23 @@ export type Show = {
 export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 export type Day = (typeof DAYS)[number];
 
+// Full names for headings; the abbreviations above stay the storage/key form.
+export const DAY_FULL: Record<Day, string> = {
+  Sun: 'Sunday',
+  Mon: 'Monday',
+  Tue: 'Tuesday',
+  Wed: 'Wednesday',
+  Thu: 'Thursday',
+  Fri: 'Friday',
+  Sat: 'Saturday'
+};
+
+/** The week reordered to start at `from` (default today), so today leads. */
+export function weekFrom(from: Day = currentDay()): Day[] {
+  const i = DAYS.indexOf(from);
+  return [...DAYS.slice(i), ...DAYS.slice(0, i)];
+}
+
 // 20.25 → "8:15 PM" ; 24 → "12:00 AM"
 export function formatHour(h: number): string {
   const norm = ((h % 24) + 24) % 24;
