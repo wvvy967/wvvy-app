@@ -1,11 +1,46 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { Volume2, TriangleAlert } from '@lucide/svelte';
+  import { VolumeSlider } from 'capacitor-plugin-system-volume';
   import { player } from '$lib/stores/player.svelte';
   import { nowPlaying } from '$lib/stores/nowplaying.svelte';
   import { hasTrack, fmtLocalClock } from '$lib/azuracast';
   import { STATION } from '$lib/station';
+  import { isNative, platform } from '$lib/native';
   import AlbumArt from '$lib/components/AlbumArt.svelte';
   import PlayButton from '$lib/components/PlayButton.svelte';
+
+  // On iOS the volume control is a native MPVolumeView (system volume, synced to
+  // the hardware buttons) overlaid on this placeholder — see the native engine.
+  // Everywhere else the web <input> below controls the <audio> element directly.
+  const useNativeVolume = isNative() && platform() === 'ios';
+  let volumeEl = $state<HTMLElement>();
+
+  onMount(() => {
+    const el = volumeEl;
+    if (!useNativeVolume || !el) return;
+    let destroyed = false;
+    let slider: VolumeSlider | null = null;
+    VolumeSlider.create({
+      id: 'wvvy-volume',
+      element: el,
+      style: {
+        minimumTrackColor: '#c4ff3d', // signal
+        maximumTrackColor: '#5a5852', // smoke
+        thumbColor: '#ece5d8', // bone
+        thumbRadius: 14
+      }
+    })
+      .then((s) => {
+        if (destroyed) void s.destroy();
+        else slider = s;
+      })
+      .catch(() => {}); // never break the page if the native side is absent
+    return () => {
+      destroyed = true;
+      void slider?.destroy();
+    };
+  });
 
   const track = $derived(nowPlaying.data.nowPlaying);
   const live = $derived(nowPlaying.data.live);
@@ -88,9 +123,15 @@
       {/if}
     </div>
 
-    <!-- iOS reserves media volume for the hardware buttons, so the slider is
-         hidden there rather than shown doing nothing. -->
-    {#if player.canSetVolume}
+    <!-- iOS: a native MPVolumeView is overlaid on this placeholder, so the
+         on-screen slider drives the system volume and tracks the hardware
+         buttons. The box must have a fixed height for the native view to fill. -->
+    {#if useNativeVolume}
+      <div class="mt-5 flex w-full max-w-xs items-center gap-3">
+        <Volume2 size={16} class="text-bone/40 shrink-0" />
+        <capacitor-volume-slider bind:this={volumeEl} class="block h-7 w-full" aria-label="Volume"></capacitor-volume-slider>
+      </div>
+    {:else if player.canSetVolume}
       <div class="mt-5 flex w-full max-w-xs items-center gap-3">
         <Volume2 size={16} class="text-bone/40 shrink-0" />
         <input

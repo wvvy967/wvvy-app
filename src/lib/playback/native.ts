@@ -8,8 +8,10 @@ import { STATION, storageKeys, streamUrl } from '../station';
 // MPNowPlayingInfoCenter — instead of an HTML <audio> element.
 //
 // Why this exists at all: HTMLMediaElement.volume is a silent no-op in WKWebView
-// on iOS, so the web engine can't offer a volume slider there. AVPlayer.volume is
-// a real per-app gain, so `canSetVolume` is true here and the slider appears.
+// on iOS, so the web engine can't offer any volume control there. This engine
+// runs AVPlayer at full gain and leaves volume to the native system-volume
+// slider (capacitor-plugin-system-volume), so the hardware buttons and the
+// on-screen slider stay in sync — hence canSetVolume is false here.
 //
 // The reconnect/backoff state machine below is intentionally parallel to
 // WebPlaybackEngine's: the native plugin is a dumb transport that just reports
@@ -41,13 +43,6 @@ const WvvyPlayer = registerPlugin<WvvyPlayerPlugin>('WvvyPlayer');
 // engine.
 const MAX_RECONNECT_ATTEMPTS = 6;
 
-function loadVolume(): number {
-  if (typeof localStorage === 'undefined') return 0.85;
-  const raw = localStorage.getItem(storageKeys.volume);
-  const n = raw == null ? NaN : Number(raw);
-  return Number.isFinite(n) && n >= 0 && n <= 1 ? n : 0.85;
-}
-
 export class NativePlaybackEngine implements PlaybackEngine {
   private listeners = new Set<PlaybackListener>();
   private pluginHandles: PluginListenerHandle[] = [];
@@ -59,10 +54,13 @@ export class NativePlaybackEngine implements PlaybackEngine {
     status: 'idle',
     wantPlay: false,
     error: null,
-    volume: loadVolume(),
-    // AVPlayer.volume is a real per-app gain on iOS — the whole point of the
-    // native engine — so the slider works here.
-    canSetVolume: true
+    // AVPlayer runs at full gain; on iOS the volume control is the native
+    // system-volume slider (capacitor-plugin-system-volume / MPVolumeView),
+    // which drives the OS output volume and stays in sync with the hardware
+    // buttons. So the app-gain path is unused here and canSetVolume is false —
+    // the web <input> slider stays hidden and +page renders the native one.
+    volume: 1,
+    canSetVolume: false
   };
 
   constructor() {
