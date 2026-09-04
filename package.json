@@ -1,7 +1,7 @@
 {
   "name": "wvvy-app",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "#Core": "Web development and build",
@@ -17,6 +17,8 @@
     "sync:android": "cap sync android",
     "#Icons": "Regenerate every launcher icon and splash from assets/ — see assets/README.md",
     "assets": "capacitor-assets generate --ios --android",
+    "#Screenshots": "Regenerate the App Store screenshot set from the iOS Simulator — see tools/screenshots/README.md",
+    "screenshots": "node tools/screenshots/capture.mjs",
     "#Native open": "Build, sync, then open the platform IDE",
     "ios": "run-s build sync:ios open:ios",
     "android": "run-s build sync:android open:android",

@@ -2,7 +2,7 @@
 
 What's changed in the WVVY app.
 
-## 1.1.0 (September 3, 2026)
+## 1.0.1 (September 3, 2026)
 
 - **Volume on iPhone.** A real slider under the play button — and it moves right along with your phone's volume buttons.
 - **AirPlay.** Send the stream to a HomePod, an Apple TV, or any AirPlay speaker.

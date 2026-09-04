@@ -13,7 +13,20 @@
   // On iOS the volume control is a native MPVolumeView (system volume, synced to
   // the hardware buttons) overlaid on this placeholder — see the native engine.
   // Everywhere else the web <input> below controls the <audio> element directly.
-  const useNativeVolume = isNative() && platform() === 'ios';
+  // Store-screenshot mode (set by tools/screenshots/harness.js before boot): the
+  // native MPVolumeView / AVRoutePickerView render empty in the simulator, so a
+  // capture swaps in the styled web slider instead of an empty native one.
+  const shotMode =
+    typeof localStorage !== 'undefined' &&
+    (() => {
+      try {
+        return localStorage.getItem('wvvy:shot') === '1';
+      } catch {
+        return false;
+      }
+    })();
+
+  const useNativeVolume = isNative() && platform() === 'ios' && !shotMode;
   let volumeEl = $state<HTMLElement>();
   let airplayEl = $state<HTMLElement>();
 
@@ -198,7 +211,7 @@
           <capacitor-volume-slider bind:this={volumeEl} class="block h-7 flex-1" aria-label="Volume"></capacitor-volume-slider>
           <capacitor-airplay-button bind:this={airplayEl} class="block h-7 w-7 shrink-0" aria-label="AirPlay"></capacitor-airplay-button>
         </div>
-      {:else if player.canSetVolume}
+      {:else if player.canSetVolume || shotMode}
         <div class="mt-4 flex w-full max-w-xs items-center gap-3">
           <Volume2 size={16} class="text-bone/40 shrink-0" />
           <input
@@ -206,7 +219,7 @@
             min="0"
             max="1"
             step="0.01"
-            value={player.volume}
+            value={shotMode ? 0.7 : player.volume}
             oninput={(e) => player.setVolume(Number(e.currentTarget.value))}
             aria-label="Volume"
             class="accent-signal bg-soot h-1 w-full cursor-pointer appearance-none rounded-full"

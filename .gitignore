@@ -56,3 +56,6 @@ android/.gradle/
 android/.idea/
 android/local.properties
 android/capacitor-cordova-android-plugins/
+
+# Generated store screenshots (regenerate with `npm run screenshots`)
+/store/screenshots/
