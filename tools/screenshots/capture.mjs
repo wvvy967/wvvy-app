@@ -37,7 +37,9 @@ const BUNDLE_ID = 'org.wvvy.app';
 // search results, so the player leads).
 const SCENES = [
   { scene: 'player', file: '01-player.png' },
-  { scene: 'schedule', file: '02-schedule.png' }
+  { scene: 'schedule', file: '02-schedule.png' },
+  { scene: 'support', file: '03-support.png' },
+  { scene: 'about', file: '04-about.png' }
 ];
 
 // The two sizes Apple still requires: one 6.9" iPhone (scaled for smaller

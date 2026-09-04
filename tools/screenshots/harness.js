@@ -157,6 +157,26 @@
       }, 'the schedule to render');
       // The live sheet may replace the static fallback a beat later.
       await sleep(3000);
+    },
+
+    // Ways to give: Venmo, PayPal, check, tax-deductible note. Static content.
+    async support() {
+      await openTab('support');
+      // The page's <h1> ("SUPPORT COMMUNITY RADIO") is the render anchor.
+      await waitFor(function () {
+        return document.querySelector('h1');
+      }, 'the support page to render');
+      await sleep(500);
+    },
+
+    // Station story, get-involved, listen-elsewhere, signal facts. Static content.
+    async about() {
+      await openTab('about');
+      // The page's <h1> ("WVVY 96.7 LPFM") is the render anchor.
+      await waitFor(function () {
+        return document.querySelector('h1');
+      }, 'the about page to render');
+      await sleep(500);
     }
   };
 
