@@ -2,6 +2,13 @@
 
 What's changed in the WVVY app.
 
+## 1.1.0 (September 3, 2026)
+
+- **Volume on iPhone.** A real slider under the play button — and it moves right along with your phone's volume buttons.
+- **AirPlay.** Send the stream to a HomePod, an Apple TV, or any AirPlay speaker.
+- **The week at a glance.** The schedule now shows every day on one screen, today first, instead of swiping across day tabs.
+- **A smoother player**, with recently played tucked one tap away so the cover art stays front and center.
+
 ## 1.0.0 (September 3, 2026)
 
 - **Tune in.** Opens on what's playing right now, one tap to start. Live, straight from the station — the same WVVY 96.7 you'd hear on the dial in Tisbury.
