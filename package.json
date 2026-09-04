@@ -82,6 +82,6 @@
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
     "@lucide/svelte": "^1.25.0",
-    "capacitor-plugin-system-volume": "^0.2.1"
+    "capacitor-plugin-system-volume": "^0.3.0"
   }
 }

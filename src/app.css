@@ -70,6 +70,13 @@
     /* Clears the fixed bottom nav (4rem) plus the home indicator. */
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
+  /* Exactly the height app-main leaves for its content (viewport minus the
+     insets it pads by). The Listen screen uses this to be a fixed viewport with
+     its own internal scroll, rather than growing and scrolling the page (which
+     would drag the native volume/AirPlay overlays around). */
+  .fit-main {
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - 5rem - env(safe-area-inset-bottom, 0px));
+  }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
