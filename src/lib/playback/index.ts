@@ -7,14 +7,16 @@ export type { PlaybackEngine, PlaybackState, PlaybackStatus } from './types';
 
 // Engine selection lives here so the rest of the app imports one thing.
 //
-// iOS runs the native AVPlayer engine (real volume + MPNowPlayingInfoCenter, the
-// surface CarPlay attaches to later). Everything else — web, PWA, and the Android
-// webview for now — stays on the <audio> + Media Session engine. Android gets its
-// own native engine (Media3 ExoPlayer) once the Kotlin side lands; until then the
-// webview path keeps working. Nothing else in the app changes across the branch.
+// Both native platforms now run the native engine behind the WvvyPlayer plugin:
+// iOS on AVPlayer (ios/App/App/WvvyPlayer.swift), Android on Media3 ExoPlayer
+// (android/.../PlaybackService.kt). Both publish a real media session — the
+// surface the lock screen, CarPlay and Android Auto attach to — and both give a
+// working volume control, which the webview's <audio> cannot on either OS. Web
+// and the installed PWA stay on the <audio> + Media Session engine.
 export function createPlaybackEngine(): PlaybackEngine {
-  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-    return new NativePlaybackEngine();
+  if (Capacitor.isNativePlatform()) {
+    const platform = Capacitor.getPlatform();
+    if (platform === 'ios' || platform === 'android') return new NativePlaybackEngine();
   }
   return new WebPlaybackEngine();
 }

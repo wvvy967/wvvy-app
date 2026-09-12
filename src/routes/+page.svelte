@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Volume2, TriangleAlert, Radio, ListMusic, Disc3 } from '@lucide/svelte';
-  import { VolumeSlider, RoutePicker } from 'capacitor-plugin-system-volume';
+  import { Volume2, TriangleAlert, Radio, ListMusic, Disc3, Cast } from '@lucide/svelte';
+  import { VolumeSlider, RoutePicker, CapacitorSystemVolume } from 'capacitor-plugin-system-volume';
   import { player } from '$lib/stores/player.svelte';
   import { nowPlaying } from '$lib/stores/nowplaying.svelte';
   import { hasTrack, fmtLocalClock } from '$lib/azuracast';
@@ -29,6 +29,22 @@
   const useNativeVolume = isNative() && platform() === 'ios' && !shotMode;
   let volumeEl = $state<HTMLElement>();
   let airplayEl = $state<HTMLElement>();
+
+  // Android has no native-overlay equivalent: the capacitor-plugin-system-volume
+  // methods drive the system media volume (AudioManager) and open the Cast
+  // chooser, and we render our own styled slider + cast button bound to them. The
+  // engine runs ExoPlayer at full gain, so this slider is the OS volume — in sync
+  // with the hardware buttons via the volumeChange listener below.
+  const isAndroidNative = isNative() && platform() === 'android' && !shotMode;
+  let androidVolume = $state(1);
+  let casting = $state(false);
+  let castName = $state('');
+
+  function setAndroidVolume(v: number) {
+    androidVolume = v;
+    void CapacitorSystemVolume.setVolume({ value: v });
+  }
+  const openCast = () => void CapacitorSystemVolume.openRoutePicker();
 
   // Two views over one screen, like Apple Music: the big-art player, and a queue
   // view that shrinks the art to a thumbnail and lists recently played. The
@@ -78,6 +94,39 @@
     return () => {
       destroyed = true;
       for (const o of live) void o.destroy();
+    };
+  });
+
+  // Android: seed the slider from the current system volume, then keep it in sync
+  // with the hardware buttons (volumeChange) and reflect Cast connection state on
+  // the button (routeChange). Guarded so an old plugin build without these methods
+  // can't break the page.
+  onMount(() => {
+    if (!isAndroidNative) return;
+    let cancelled = false;
+    const handles: Array<{ remove: () => Promise<void> }> = [];
+    const keep = (p: Promise<{ remove: () => Promise<void> }>) =>
+      void p
+        .then((h) => {
+          if (cancelled) void h.remove();
+          else handles.push(h);
+        })
+        .catch(() => {});
+
+    void CapacitorSystemVolume.getVolume()
+      .then(({ value }) => (androidVolume = value))
+      .catch(() => {});
+    keep(CapacitorSystemVolume.addListener('volumeChange', ({ value }) => (androidVolume = value)));
+    keep(
+      CapacitorSystemVolume.addListener('routeChange', ({ connected, name }) => {
+        casting = connected;
+        castName = name;
+      })
+    );
+
+    return () => {
+      cancelled = true;
+      for (const h of handles) void h.remove();
     };
   });
 
@@ -203,13 +252,37 @@
       <PlayButton />
 
       <!-- Volume sits directly under the play button. iOS overlays a native
-           MPVolumeView on this placeholder; elsewhere the web <input> drives the
+           MPVolumeView + AirPlay button; Android drives the system volume and a
+           Cast button through the plugin; elsewhere the web <input> drives the
            <audio> element. -->
       {#if useNativeVolume}
         <div class="mt-4 flex w-full max-w-xs items-center gap-3">
           <Volume2 size={16} class="text-bone/40 shrink-0" />
           <capacitor-volume-slider bind:this={volumeEl} class="block h-7 flex-1" aria-label="Volume"></capacitor-volume-slider>
           <capacitor-airplay-button bind:this={airplayEl} class="block h-7 w-7 shrink-0" aria-label="AirPlay"></capacitor-airplay-button>
+        </div>
+      {:else if isAndroidNative}
+        <div class="mt-4 flex w-full max-w-xs items-center gap-3">
+          <Volume2 size={16} class="text-bone/40 shrink-0" />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={androidVolume}
+            oninput={(e) => setAndroidVolume(Number(e.currentTarget.value))}
+            aria-label="Volume"
+            class="accent-signal bg-soot h-1 w-full cursor-pointer appearance-none rounded-full"
+          />
+          <button
+            type="button"
+            onclick={openCast}
+            aria-label={casting ? `Casting to ${castName}` : 'Cast to a device'}
+            aria-pressed={casting}
+            class="focus-visible:outline-signal shrink-0 rounded p-0.5 transition-colors focus-visible:outline-2"
+          >
+            <Cast size={18} class={casting ? 'text-signal' : 'text-bone/40 hover:text-bone'} />
+          </button>
         </div>
       {:else if player.canSetVolume || shotMode}
         <div class="mt-4 flex w-full max-w-xs items-center gap-3">

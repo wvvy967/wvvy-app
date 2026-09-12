@@ -20,6 +20,27 @@
             </intent-filter>
         </activity>
 
+        <!-- The native audio engine (PlaybackService.kt). A MediaSessionService
+             hosts the ExoPlayer + MediaSession that draw the lock-screen controls
+             and reach Android Auto. media3-session manages the foreground media
+             notification itself once playback starts. exported + the intent
+             filter let system controllers (Android Auto, Assistant) bind. -->
+        <service
+            android:name=".PlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
+        <!-- Cast SDK finds its configuration through this class (CastOptionsProvider.kt):
+             the receiver app id and media options. Required for CastContext to
+             initialize; without it PlaybackService silently runs local-only. -->
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="org.wvvy.app.CastOptionsProvider" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
