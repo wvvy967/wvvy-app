@@ -33,11 +33,17 @@
         <item name="mediaRouteTheme">@style/AppTheme.MediaRoute</item>
     </style>
 
-    <!-- Compact, correctly-sized Cast dialog styled to the app's accent. -->
+    <!-- Cast dialog styled to the app's accent. The opaque window background is
+         the fix for the "tiny logos" — the app's edge-to-edge webview was showing
+         THROUGH the MediaRouter dialog's transparent window; a solid ink panel
+         stops the bleed-through so the dialog reads as a clean dark sheet. -->
     <style name="AppTheme.MediaRoute" parent="Theme.MediaRouter">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/ink</item>
+        <item name="android:colorBackground">@color/ink</item>
+        <item name="android:backgroundDimEnabled">true</item>
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
