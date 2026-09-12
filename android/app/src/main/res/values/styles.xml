@@ -27,6 +27,17 @@
              The naming is inverted: the flag asks "is the bar background light?" -->
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
+        <!-- The Cast chooser/controller dialogs otherwise inherit this activity's
+             edge-to-edge fullscreen theme and render as a full-screen sheet with a
+             cramped icon. Point them at a proper MediaRouter dialog theme. -->
+        <item name="mediaRouteTheme">@style/AppTheme.MediaRoute</item>
+    </style>
+
+    <!-- Compact, correctly-sized Cast dialog styled to the app's accent. -->
+    <style name="AppTheme.MediaRoute" parent="Theme.MediaRouter">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
