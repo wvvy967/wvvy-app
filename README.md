@@ -102,12 +102,16 @@ production build** — a shipped app pointing at a dev server is a dead app.
 ## Audio architecture
 
 Playback lives behind the `PlaybackEngine` interface rather than in the UI,
-because CarPlay and Android Auto cannot see an HTML `<audio>` element and would
-otherwise require rewriting the player.
+because CarPlay, Android Auto, Chromecast and reliable background playback cannot
+see an HTML `<audio>` element and would otherwise require rewriting the player.
 
-Background playback and lock-screen controls work today on iOS. CarPlay needs an
-Apple entitlement (request early — it gates everything) plus a native engine.
-Android background playback has a real caveat worth reading before shipping.
+iOS and Android now both run a native engine (AVPlayer / Media3 ExoPlayer) behind
+one shared `WvvyPlayer` plugin: background playback, lock-screen controls, a
+working volume slider, and casting (AirPlay on iOS, Chromecast on Android) all
+work today. Web and the installed PWA stay on the `<audio>` engine. The two
+remaining in-dashboard pieces are CarPlay (needs an Apple entitlement — request
+early, it gates everything) and the Android Auto app declaration (a separate Play
+review).
 
 All of it, with the reasoning: **[docs/native-audio.md](docs/native-audio.md)**.
 

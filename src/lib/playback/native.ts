@@ -3,15 +3,21 @@ import type { PlaybackEngine, PlaybackListener, PlaybackState, PlaybackStatus } 
 import type { Track } from '../azuracast';
 import { STATION, storageKeys, streamUrl } from '../station';
 
-// Native playback engine, used on iOS. It drives the WvvyPlayer Capacitor plugin
-// (ios/App/App/WvvyPlayer.swift) — an AVPlayer publishing to
-// MPNowPlayingInfoCenter — instead of an HTML <audio> element.
+// Native playback engine, used on both iOS and Android. It drives the WvvyPlayer
+// Capacitor plugin — an AVPlayer publishing to MPNowPlayingInfoCenter on iOS
+// (ios/App/App/WvvyPlayer.swift), a Media3 ExoPlayer in a MediaSessionService on
+// Android (android/.../PlaybackService.kt) — instead of an HTML <audio> element.
+// The plugin's JS surface is identical on both, so this one engine drives them
+// without a platform branch (bar the Android-only adoptRunningPlayback below).
 //
 // Why this exists at all: HTMLMediaElement.volume is a silent no-op in WKWebView
-// on iOS, so the web engine can't offer any volume control there. This engine
-// runs AVPlayer at full gain and leaves volume to the native system-volume
-// slider (capacitor-plugin-system-volume), so the hardware buttons and the
-// on-screen slider stay in sync — hence canSetVolume is false here.
+// on iOS (and unreliable in the Android WebView), so the web engine can't offer a
+// working volume control there. This engine runs the native player at full gain
+// and leaves volume to the native system-volume slider (capacitor-plugin-system-volume)
+// on both platforms — iOS via an MPVolumeView overlay, Android via a styled slider
+// that calls the same plugin (see +page.svelte) — so the hardware buttons and the
+// on-screen slider stay in sync. Hence canSetVolume is false and the app-gain path
+// (setVolume below) goes unused on device; it stays only for parity/tests.
 //
 // The reconnect/backoff state machine below is intentionally parallel to
 // WebPlaybackEngine's: the native plugin is a dumb transport that just reports

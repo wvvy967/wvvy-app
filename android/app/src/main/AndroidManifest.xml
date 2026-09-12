@@ -59,10 +59,9 @@
     <!-- Keeps the CPU alive while audio plays with the screen off. Without this
          Android can suspend the process mid-stream. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- Foreground service permissions for the media notification. Declared here
-         so the manifest is ready for the native media service; see
-         docs/native-audio.md for the remaining Kotlin work needed to make
-         background playback fully reliable on Android and to reach Android Auto. -->
+    <!-- Foreground service permissions for the media notification that
+         PlaybackService.kt runs. This is what keeps a backgrounded stream alive
+         under OEM battery management; see docs/native-audio.md. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- Android 13+ requires an explicit grant before a media notification shows. -->
