@@ -127,6 +127,20 @@ class WvvyPlayerPlugin : Plugin() {
         }
     }
 
+    // Whether the background service is already streaming. The JS engine asks this
+    // on startup so that reopening the app (a fresh webview) adopts a stream that's
+    // still playing, instead of showing "Play" over live audio.
+    @PluginMethod
+    fun getState(call: PluginCall) {
+        onController(call) { c ->
+            val active =
+                c.playWhenReady &&
+                    c.playbackState != Player.STATE_IDLE &&
+                    c.playbackState != Player.STATE_ENDED
+            call.resolve(JSObject().put("playing", active))
+        }
+    }
+
     @PluginMethod
     fun updateNowPlaying(call: PluginCall) {
         val title = call.getString("title") ?: ""

@@ -1,4 +1,4 @@
-import { registerPlugin, type PluginListenerHandle } from '@capacitor/core';
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 import type { PlaybackEngine, PlaybackListener, PlaybackState, PlaybackStatus } from './types';
 import type { Track } from '../azuracast';
 import { STATION, storageKeys, streamUrl } from '../station';
@@ -32,6 +32,7 @@ interface WvvyPlayerPlugin {
   load(options: { url: string; volume: number }): Promise<void>;
   stop(): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
+  getState(): Promise<{ playing: boolean }>;
   updateNowPlaying(options: { title: string; artist: string; album: string; artworkUrl?: string }): Promise<void>;
   addListener(event: 'stateChange', cb: (e: StateChangeEvent) => void): Promise<PluginListenerHandle>;
   addListener(event: 'remoteCommand', cb: (e: RemoteCommandEvent) => void): Promise<PluginListenerHandle>;
@@ -68,6 +69,27 @@ export class NativePlaybackEngine implements PlaybackEngine {
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
     void this.bindPlugin();
+    void this.adoptRunningPlayback();
+  }
+
+  // Background audio outlives the webview: on Android, closing and reopening the
+  // app makes a fresh webview whose engine state starts idle, while the media
+  // service may still be streaming. Ask the native side once at startup and adopt
+  // a stream that's already playing, so the UI shows "Stop" over live audio rather
+  // than a "Play" button that would start a second load. iOS keeps its webview, so
+  // this is Android-only; the try/catch also covers a plugin without getState.
+  private async adoptRunningPlayback() {
+    if (Capacitor.getPlatform() !== 'android') return;
+    try {
+      const { playing } = await WvvyPlayer.getState();
+      if (playing && !this.state.wantPlay) {
+        this.reconnectAttempts = 0;
+        this.patch({ wantPlay: true });
+        this.setStatus('playing');
+      }
+    } catch {
+      // No getState (older native build) or not playing — leave state idle.
+    }
   }
 
   getState(): PlaybackState {
