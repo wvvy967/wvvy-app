@@ -2,6 +2,10 @@
 
 What's changed in the WVVY app.
 
+## 1.0.2 (September 4, 2026)
+
+- **Giving, out in the open.** Tapping Venmo or PayPal now hands you straight to your browser to finish the gift - the stream keeps playing while you do.
+
 ## 1.0.1 (September 3, 2026)
 
 - **Volume on iPhone.** A real slider under the play button — and it moves right along with your phone's volume buttons.

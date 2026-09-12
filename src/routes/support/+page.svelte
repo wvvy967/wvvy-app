@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Copy, Check, ExternalLink } from '@lucide/svelte';
   import { STATION, PAYPAL_URL, VENMO_URL, VENMO_HANDLE } from '$lib/station';
-  import { openExternal } from '$lib/native';
+  import { openExternal, openInSystemBrowser } from '$lib/native';
 
   const mailingText = `${STATION.legalName}\n${STATION.poBox}\n${STATION.city}`;
 
@@ -41,7 +41,7 @@
     </div>
     <button
       type="button"
-      onclick={() => openExternal(VENMO_URL)}
+      onclick={() => openInSystemBrowser(VENMO_URL)}
       class="border-signal bg-signal/10 text-signal hover:bg-signal hover:text-ink mt-5 flex w-full items-center justify-between gap-4 border px-5 py-4 transition-colors"
     >
       <span class="stencil text-lg tracking-wider">OPEN VENMO</span>
@@ -56,7 +56,7 @@
     <p class="elite text-bone/65 mt-3 text-sm leading-relaxed">Give with a card or your PayPal balance — one-time or a monthly gift.</p>
     <button
       type="button"
-      onclick={() => openExternal(PAYPAL_URL)}
+      onclick={() => openInSystemBrowser(PAYPAL_URL)}
       class="border-bone/40 text-bone hover:border-signal hover:text-signal mt-5 flex w-full items-center justify-between gap-4 border px-5 py-4 transition-colors"
     >
       <span class="stencil text-lg tracking-wider">DONATE / PAYPAL</span>

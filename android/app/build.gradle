@@ -1,14 +1,47 @@
 apply plugin: 'com.android.application'
 
+// Release signing, supplied entirely from the environment (see scripts/release-android.sh
+// and .env.release). The keystore never enters the repository. With any of these absent —
+// which is every ordinary checkout — signingConfigs.release is simply not created and a
+// release build comes out unsigned. That still compiles and still proves the project builds.
+//
+// Names are deliberately prefixed. Inside a signingConfigs.release { } block Groovy resolves
+// bare keyAlias / keyPassword to the signing config's own properties rather than to the
+// variables declared out here, so unprefixed names silently read null and the build fails.
+def signingStorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+def signingStorePassword = System.getenv('ANDROID_KEYSTORE_PASSWORD')
+def signingKeyAlias = System.getenv('ANDROID_KEY_ALIAS') ?: 'upload'
+def signingKeyPassword = System.getenv('ANDROID_KEY_PASSWORD') ?: signingStorePassword
+def hasSigning = signingStorePath && file(signingStorePath).exists() && signingStorePassword
+
+// Version, supplied by the release script / CI. versionCode must be a monotonically
+// increasing integer and Play permanently refuses one it has already accepted, so the
+// release script asks Play for the next value rather than guessing. The fallbacks keep a
+// plain local ./gradlew assembleRelease working; those artifacts must never reach Play.
+def versionCodeValue = (System.getenv('ANDROID_VERSION_CODE') ?: '1') as Integer
+def versionNameValue = System.getenv('ANDROID_VERSION_NAME') ?: '1.0'
+
 android {
     namespace = "org.wvvy.app"
     compileSdk = rootProject.ext.compileSdkVersion
+
+    if (hasSigning) {
+        signingConfigs {
+            release {
+                storeFile file(signingStorePath)
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "org.wvvy.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode versionCodeValue
+        versionName versionNameValue
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,6 +53,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasSigning) {
+                signingConfig = signingConfigs.release
+            }
         }
     }
 }
