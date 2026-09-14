@@ -2,6 +2,7 @@ package org.wvvy.app
 
 import android.content.ComponentName
 import android.net.Uri
+import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -95,10 +96,24 @@ class WvvyPlayerPlugin : Plugin() {
             return
         }
         val volume = call.getFloat("volume") ?: 0.85f
+        // Poll config for the background service, carried on the item's request
+        // metadata so PlaybackService can keep the transport advancing while the app
+        // is backgrounded and this webview process is frozen (see PlaybackService).
+        val extras =
+            Bundle().apply {
+                call.getString("nowPlayingUrl")?.let { putString(PlaybackService.EXTRA_NOWPLAYING_URL, it) }
+                putString(PlaybackService.EXTRA_STATION_NAME, call.getString("stationName") ?: "")
+                putString(PlaybackService.EXTRA_STATION_DESC, call.getString("stationDesc") ?: "")
+            }
         onController(call) { c ->
             // A live stream has no timeline; a fresh item each attempt avoids
             // resuming a stale buffer, matching the web and iOS engines.
-            c.setMediaItem(MediaItem.fromUri(url))
+            val item =
+                MediaItem.Builder()
+                    .setUri(url)
+                    .setRequestMetadata(MediaItem.RequestMetadata.Builder().setExtras(extras).build())
+                    .build()
+            c.setMediaItem(item)
             c.volume = volume
             c.prepare()
             c.playWhenReady = true

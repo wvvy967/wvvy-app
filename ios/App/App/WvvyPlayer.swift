@@ -31,6 +31,19 @@ final class WvvyPlayer: NSObject {
     private var artworkTask: URLSessionDataTask?
     private var volume: Float = 0.85
 
+    // Now-playing metadata is polled natively so the lock screen / car / Bluetooth
+    // keep advancing while the app is backgrounded and the WKWebView's JS timers are
+    // suspended — which is exactly when the TS poller (nowplaying.svelte.ts) can't
+    // run. The web layer only feeds metadata in the foreground; the native side owns
+    // MPNowPlayingInfoCenter on iOS whenever the player is live.
+    private var metadataUrl: URL?
+    private var stationName = ""
+    private var stationDesc = ""
+    private var metadataTimer: DispatchSourceTimer?
+    private var metadataTask: URLSessionDataTask?
+    private var lastMetadataKey: String?
+    private let metadataInterval: TimeInterval = 15
+
     override init() {
         super.init()
         configureRemoteCommands()
@@ -38,8 +51,12 @@ final class WvvyPlayer: NSObject {
 
     // MARK: - Transport
 
-    func play(urlString: String, volume: Float) {
+    func play(urlString: String, volume: Float,
+              nowPlayingUrl: String? = nil, stationName: String = "", stationDesc: String = "") {
         self.volume = volume
+        self.stationName = stationName
+        self.stationDesc = stationDesc
+        self.metadataUrl = nowPlayingUrl.flatMap { URL(string: $0) }
         guard let url = URL(string: urlString) else {
             onState?(.error, "invalid stream URL")
             return
@@ -60,9 +77,12 @@ final class WvvyPlayer: NSObject {
         onState?(.buffering, nil)
         player.play()
         MPNowPlayingInfoCenter.default().playbackState = .playing
+        startMetadataPolling()
     }
 
     func stop() {
+        stopMetadataPolling()
+        lastMetadataKey = nil
         teardownItem()
         player?.pause()
         player?.replaceCurrentItem(with: nil)
@@ -127,6 +147,12 @@ final class WvvyPlayer: NSObject {
     // MARK: - Now Playing / lock-screen metadata
 
     func updateNowPlaying(title: String, artist: String, album: String, artworkUrl: String?) {
+        // Skip the round-trip when the track hasn't actually moved — the poll below
+        // and any foreground push from JS both funnel through here, so this also
+        // stops the two from fighting over the same unchanged song.
+        let key = "\(artist)|\(title)"
+        if key == lastMetadataKey { return }
+        lastMetadataKey = key
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: title,
             MPMediaItemPropertyArtist: artist,
@@ -156,6 +182,61 @@ final class WvvyPlayer: NSObject {
             }
         }
         artworkTask = task
+        task.resume()
+    }
+
+    // MARK: - Metadata polling
+
+    // The station reports the current song over its AzuraCast API, not inline in the
+    // Icecast byte stream, so we poll it. A dispatch timer on the main queue keeps
+    // firing while the app is backgrounded (the process stays alive under the `audio`
+    // background mode), which is precisely when the JS poller is frozen and the lock
+    // screen would otherwise stick on the song that was playing at lock time.
+    private func startMetadataPolling() {
+        stopMetadataPolling()
+        guard metadataUrl != nil else { return }
+        fetchMetadata()
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + metadataInterval, repeating: metadataInterval)
+        timer.setEventHandler { [weak self] in self?.fetchMetadata() }
+        timer.resume()
+        metadataTimer = timer
+    }
+
+    private func stopMetadataPolling() {
+        metadataTimer?.cancel(); metadataTimer = nil
+        metadataTask?.cancel(); metadataTask = nil
+    }
+
+    private func fetchMetadata() {
+        guard let url = metadataUrl else { return }
+        metadataTask?.cancel()
+        var req = URLRequest(url: url)
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        let task = URLSession.shared.dataTask(with: req) { [weak self] data, _, _ in
+            guard let self = self, let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            else { return }
+            let song = (json["now_playing"] as? [String: Any])?["song"] as? [String: Any]
+            func field(_ key: String) -> String {
+                ((song?[key] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            // Mirror the fallbacks the JS engine applies (src/lib/playback/native.ts)
+            // so the lock screen reads identically whichever layer wrote it last.
+            let title = field("title")
+            let artist = field("artist")
+            let album = field("album")
+            let art = field("art")
+            DispatchQueue.main.async {
+                self.updateNowPlaying(
+                    title: title.isEmpty ? "Live Stream" : title,
+                    artist: artist.isEmpty ? self.stationName : artist,
+                    album: album.isEmpty ? self.stationDesc : album,
+                    artworkUrl: art.isEmpty ? nil : art
+                )
+            }
+        }
+        metadataTask = task
         task.resume()
     }
 

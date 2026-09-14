@@ -37,8 +37,13 @@ public class WvvyPlayerPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         let volume = Float(call.getDouble("volume") ?? 0.85)
+        let nowPlayingUrl = call.getString("nowPlayingUrl")
+        let stationName = call.getString("stationName") ?? ""
+        let stationDesc = call.getString("stationDesc") ?? ""
         DispatchQueue.main.async {
-            self.player.play(urlString: url, volume: volume)
+            self.player.play(urlString: url, volume: volume,
+                             nowPlayingUrl: nowPlayingUrl,
+                             stationName: stationName, stationDesc: stationDesc)
             call.resolve()
         }
     }

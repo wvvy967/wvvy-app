@@ -1,7 +1,7 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 import type { PlaybackEngine, PlaybackListener, PlaybackState, PlaybackStatus } from './types';
 import type { Track } from '../azuracast';
-import { STATION, storageKeys, streamUrl } from '../station';
+import { NOWPLAYING_API_URL, STATION, storageKeys, streamUrl } from '../station';
 
 // Native playback engine, used on both iOS and Android. It drives the WvvyPlayer
 // Capacitor plugin — an AVPlayer publishing to MPNowPlayingInfoCenter on iOS
@@ -35,7 +35,10 @@ interface RemoteCommandEvent {
   command: 'play' | 'pause' | 'stop';
 }
 interface WvvyPlayerPlugin {
-  load(options: { url: string; volume: number }): Promise<void>;
+  // nowPlayingUrl + station labels let the native side poll the AzuraCast metadata
+  // API itself and keep MPNowPlayingInfoCenter advancing while backgrounded, where
+  // the JS poller can't run. Optional so an older native build still loads.
+  load(options: { url: string; volume: number; nowPlayingUrl?: string; stationName?: string; stationDesc?: string }): Promise<void>;
   stop(): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
   getState(): Promise<{ playing: boolean }>;
@@ -55,7 +58,6 @@ export class NativePlaybackEngine implements PlaybackEngine {
   private pluginHandles: PluginListenerHandle[] = [];
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
-  private lastMetadataKey: string | null = null;
 
   private state: PlaybackState = {
     status: 'idle',
@@ -198,8 +200,16 @@ export class NativePlaybackEngine implements PlaybackEngine {
     try {
       this.setStatus('loading');
       // A fresh URL each attempt — a reused src can resume a stale buffer, which
-      // native players are especially prone to.
-      await WvvyPlayer.load({ url: streamUrl(), volume: this.state.volume });
+      // native players are especially prone to. The station labels match the
+      // fallbacks updateMetadata applies, so the lock screen reads the same whether
+      // the native poll or a foreground JS push wrote it last.
+      await WvvyPlayer.load({
+        url: streamUrl(),
+        volume: this.state.volume,
+        nowPlayingUrl: NOWPLAYING_API_URL,
+        stationName: STATION.name,
+        stationDesc: `${STATION.name} · ${STATION.location}`
+      });
     } catch {
       this.handleDrop();
     }
@@ -238,22 +248,16 @@ export class NativePlaybackEngine implements PlaybackEngine {
     if (typeof localStorage !== 'undefined') localStorage.setItem(storageKeys.volume, String(clamped));
   }
 
-  updateMetadata(track: Track | null | undefined): void {
-    const artist = (track?.artist ?? '').trim();
-    const title = (track?.title ?? '').trim() || 'Live Stream';
-    // The poller reassigns its data wholesale every tick, so skip the native
-    // round-trip when the track hasn't actually moved.
-    const key = `${artist}|${title}`;
-    if (key === this.lastMetadataKey) return;
-    this.lastMetadataKey = key;
-    void WvvyPlayer.updateNowPlaying({
-      title,
-      artist: artist || STATION.name,
-      album: track?.album?.trim() || `${STATION.name} · ${STATION.location}`,
-      // Absolute URL only — the native side fetches it directly, so a relative
-      // fallback icon wouldn't resolve. Omit when there's no art.
-      artworkUrl: track?.art?.trim() || undefined
-    });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  updateMetadata(_track: Track | null | undefined): void {
+    // Deliberately a no-op. Both native platforms poll the AzuraCast API from the
+    // native player and own the OS media session directly — MPNowPlayingInfoCenter
+    // on iOS (WvvyPlayer.swift), the MediaSession on Android (PlaybackService.kt) —
+    // so the lock screen / car / Bluetooth keep advancing while the app is
+    // backgrounded and this JS path is frozen. Pushing from here too would just be
+    // a second, foreground-only writer racing the native poll. The station labels
+    // the native side needs for its fallbacks are handed over once, in start().
+    // Kept to satisfy the PlaybackEngine contract (the store still calls it).
   }
 
   destroy(): void {
