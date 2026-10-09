@@ -18,7 +18,11 @@ const config: CapacitorConfig = {
     }
   },
   ios: {
-    contentInset: 'never',
+    // Left at the Capacitor default (not 'never'): 'never' stops WKWebView from
+    // reporting safe-area insets to the web layer — env(safe-area-inset-*) all
+    // read 0 — which breaks layout on any display whose safe area isn't a plain
+    // top bar, notably the iPhone Duo's outer display where the status bar is a
+    // side strip. The app does its own safe-area padding with env() in app.css.
     backgroundColor: '#0a0908'
   },
   android: {

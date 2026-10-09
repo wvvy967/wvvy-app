@@ -21,6 +21,10 @@
     "screenshots": "node tools/screenshots/capture.mjs",
     "screenshots:ios": "node tools/screenshots/capture.mjs ios",
     "screenshots:android": "node tools/screenshots/capture.mjs android",
+    "#Screenshots framed": "Composite the bare captures into marketed store frames — ink gradient, headline, device bezel. Reads store/screenshots, writes store/screenshots/framed. See tools/screenshots/frame.mjs",
+    "screenshots:framed": "node tools/screenshots/frame.mjs",
+    "#Screenshots creative": "The App Store product-page header, search and universal creative assets, framed from the iPhone captures — see tools/screenshots/creative.mjs",
+    "screenshots:creative": "node tools/screenshots/creative.mjs",
     "#Native open": "Build, sync, then open the platform IDE",
     "ios": "run-s build sync:ios open:ios",
     "android": "run-s build sync:android open:android",
@@ -68,6 +72,7 @@
     "prettier": "^3.9.5",
     "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "sharp": "^0.35.5",
     "svelte": "^5.57.1",
     "svelte-check": "^4.7.5",
     "tailwindcss": "^4.3.3",
@@ -88,6 +93,9 @@
     "@capacitor/status-bar": "^8.0.3",
     "@lucide/svelte": "^1.25.0",
     "capacitor-plugin-system-volume": "^0.4.1"
+  },
+  "overrides": {
+    "native-run": "npm:@katamalabs/native-run@^2.0.5"
   },
   "imports": {
     "#lib": "./src/lib/index.js",

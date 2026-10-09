@@ -39,7 +39,7 @@
 
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,6 +83,37 @@ const TARGETS = {
     device: 'iPad Pro 13-inch (M5)',
     out: 'app-store/ipad-13',
     expect: '2064x2752'
+  },
+  /*
+    The iPhone Duo's two displays, each its own App Store set. Optional — left
+    out, Apple scales the 6.9" set into them — but they are near 1:1.4 against
+    the 6.9"'s 1:2.17, so a scaled set is heavily letterboxed. One simulator,
+    two poses: folded, the outer display (`primary`) is live and the inner is
+    black; open, the reverse. The pose is set through Device Hub (see
+    devicehub.swift), which needs Xcode 27.1 or later installed (though not
+    selected) and the terminal's Accessibility permission.
+
+    `optional: true` keeps them out of the `ios` group run (`screenshots:ios`) —
+    the common path shouldn't need Device Hub — so they are captured only when
+    named: `node tools/screenshots/capture.mjs iphone-duo-outer iphone-duo-inner`.
+  */
+  'iphone-duo-outer': {
+    platform: 'ios',
+    device: 'iPhone Duo',
+    out: 'app-store/iphone-duo-outer',
+    expect: '1398x2034',
+    display: 'primary',
+    pose: 'Closed',
+    optional: true
+  },
+  'iphone-duo-inner': {
+    platform: 'ios',
+    device: 'iPhone Duo',
+    out: 'app-store/iphone-duo-inner',
+    expect: '2007x2853',
+    display: 'primary-1',
+    pose: 'Open',
+    optional: true
   },
   'play-phone': {
     platform: 'android',
@@ -175,7 +206,7 @@ function simctl(args, options = {}) {
 }
 
 /** The newest available simulator with this name, booting it if it is not up. */
-function bootSimulator(name) {
+function bootSimulator(name, { hub = false } = {}) {
   const list = JSON.parse(simctl(['list', 'devices', 'available', '--json']));
   const found = [];
   for (const [runtime, devices] of Object.entries(list.devices)) {
@@ -192,17 +223,106 @@ function bootSimulator(name) {
     log(`  booting ${name}`);
     simctl(['boot', device.udid]);
   }
-  run('open', ['-a', 'Simulator']);
+  // A posed device (the Duo) is driven through Device Hub, and two front ends on
+  // one simulator fight over it, so it gets Device Hub alone.
+  if (!hub) run('open', ['-a', 'Simulator']);
+  else if (!deviceHubRunning()) run('open', [deviceHubApp()]);
   simctl(['bootstatus', device.udid]);
   return device.udid;
 }
 
+/*
+  Device Hub, from the newest Xcode that ships one — Xcode 27 replaced
+  Simulator.app with it, and only it can fold an iPhone Duo. Found by looking
+  rather than through xcode-select, because the selected Xcode is whichever
+  builds the app, and that may well be an older one. One already running is
+  reused rather than a second launched beside it. DEVICE_HUB overrides.
+
+  The Duo simulator shipped in 27.1 and 27.2's betas do not carry it, so betas
+  sort last (behind releases) and "newest" never picks a beta that cannot show
+  the device.
+*/
+function deviceHubApp() {
+  if (process.env.DEVICE_HUB) return process.env.DEVICE_HUB;
+  const found = readdirSync('/Applications')
+    .filter((name) => /^Xcode.*\.app$/.test(name))
+    .map((name) => join('/Applications', name, 'Contents', 'Applications', 'DeviceHub.app'))
+    .filter((path) => existsSync(path))
+    .sort((a, b) => Number(/beta/i.test(b)) - Number(/beta/i.test(a)) || a.localeCompare(b, undefined, { numeric: true }));
+  if (!found.length) throw new Error('no Device Hub found — the iPhone Duo sets need Xcode 27.1 or later in /Applications (or DEVICE_HUB=/path/to/DeviceHub.app)');
+  return found[found.length - 1];
+}
+
+function deviceHubRunning() {
+  try {
+    return Boolean(run('pgrep', ['-x', 'DeviceHub'], { quiet: true }).trim());
+  } catch {
+    return false;
+  }
+}
+
+/** The Xcode a Device Hub belongs to: …/Xcode-27.1.app/Contents/Developer. */
+function developerDirOf(hubApp) {
+  return join(hubApp.slice(0, hubApp.indexOf('/Contents/') + '/Contents/'.length), 'Developer');
+}
+
+/** The devicehub.swift helper, compiled once per source change into tmp. */
+function deviceHubHelper() {
+  const source = join(HERE, 'devicehub.swift');
+  const hash = createHash('sha1').update(readFileSync(source)).digest('hex').slice(0, 12);
+  const binary = join(tmpdir(), `wvvy-devicehub-${hash}`);
+  if (!existsSync(binary)) {
+    log('  compiling the Device Hub helper');
+    run('xcrun', ['swiftc', '-O', '-o', binary, source], { quiet: true });
+  }
+  return binary;
+}
+
+/*
+  Put a Duo into the target's pose, portrait. Opening it lands the inner display
+  in landscape (2853 × 2007), its natural book orientation, so after the pose the
+  display is measured and rotated until it is the size the store wants. Rotation
+  is a quarter turn per press, so four presses cover every starting point; a
+  fifth means the size will never match.
+*/
+async function setPose(udid, target, shotPath) {
+  const helper = deviceHubHelper();
+  // Device Hub opens its window a moment after the app launches, so the first
+  // few presses can miss it — retry for up to 90 seconds.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      run(helper, [target.device, target.pose], { quiet: true });
+      break;
+    } catch (error) {
+      if (attempt >= 45) throw new Error(`could not set the ${target.device} to ${target.pose}: ${error.stderr || error.message}`, { cause: error });
+      await sleep(2000);
+    }
+  }
+  for (let turn = 0; turn <= 4; turn++) {
+    await sleep(2500);
+    simctl(['io', udid, 'screenshot', `--display=${target.display}`, shotPath]);
+    const size = pngSize(readFileSync(shotPath));
+    if (size === target.expect) return;
+    if (turn === 4) break;
+    run(helper, [target.device, 'Rotate Right'], { quiet: true });
+  }
+  throw new Error(`the ${target.display} display of the ${target.device} never measured ${target.expect} — is the pose right?`);
+}
+
 async function captureIos(target, key, scenes, options) {
-  const udid = bootSimulator(target.device);
+  const udid = bootSimulator(target.device, { hub: Boolean(target.pose) });
 
   if (options.build) {
     log(`  building and installing on ${target.device}`);
-    run('npx', ['cap', 'run', 'ios', '--target', udid]);
+    /*
+      A Duo is built with the Xcode whose Device Hub poses it, not whichever is
+      selected. iOS runs an app built against an SDK older than the Duo in a
+      compatibility window that stops short of the side strip and paints it
+      black; building with 27.1+ runs to the edge. Shooting the letterbox would
+      photograph a layout no current build has.
+    */
+    const env = target.pose ? { ...process.env, DEVELOPER_DIR: developerDirOf(deviceHubApp()) } : process.env;
+    run('npx', ['cap', 'run', 'ios', '--target', udid], { env });
   }
 
   // 9:41, full battery and signal — the time Apple's own device shots have used
@@ -241,6 +361,10 @@ async function captureIos(target, key, scenes, options) {
   const pristine = readFileSync(indexPath, 'utf8');
   const shotPath = join(tmpdir(), `wvvy-shot-${process.pid}.png`);
 
+  // Fold the Duo into the pose that lights the display this set wants, then
+  // every screenshot below is taken of that display.
+  if (target.pose) await setPose(udid, target, shotPath);
+
   try {
     for (const { scene, file } of scenes) {
       log(`  ${key}: ${scene}`);
@@ -253,7 +377,7 @@ async function captureIos(target, key, scenes, options) {
       const png = await captureSettled(
         async () => {
           // simctl writes nothing, silently, when handed a relative path.
-          simctl(['io', udid, 'screenshot', shotPath]);
+          simctl(['io', udid, 'screenshot', ...(target.display ? [`--display=${target.display}`] : []), shotPath]);
           return readFileSync(shotPath);
         },
         `${key}/${scene}`,
@@ -551,12 +675,15 @@ async function main() {
   if (outArg) outRoot = outArg;
 
   const names = argv.filter((a) => !a.startsWith('--'));
-  let keys = Object.keys(TARGETS);
+  // Optional targets (the Duo) stay out of the default run and the ios/android
+  // groups — they need Device Hub and the terminal's Accessibility permission —
+  // so they are captured only when named explicitly.
+  let keys = Object.keys(TARGETS).filter((k) => !TARGETS[k].optional);
   if (names.length) {
     keys = [];
     for (const name of names) {
       if (name === 'ios' || name === 'android') {
-        keys.push(...Object.keys(TARGETS).filter((k) => TARGETS[k].platform === name));
+        keys.push(...Object.keys(TARGETS).filter((k) => TARGETS[k].platform === name && !TARGETS[k].optional));
       } else if (TARGETS[name]) {
         keys.push(name);
       } else {
