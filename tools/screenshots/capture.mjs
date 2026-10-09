@@ -207,7 +207,27 @@ async function captureIos(target, key, scenes, options) {
 
   // 9:41, full battery and signal — the time Apple's own device shots have used
   // since 2007. A store shot may not show a real clock or battery.
-  simctl(['status_bar', udid, 'override', '--time', '9:41', '--dataNetwork', 'wifi', '--wifiMode', 'active', '--wifiBars', '3', '--cellularMode', 'active', '--cellularBars', '4', '--batteryState', 'discharging', '--batteryLevel', '100']);
+  simctl([
+    'status_bar',
+    udid,
+    'override',
+    '--time',
+    '9:41',
+    '--dataNetwork',
+    'wifi',
+    '--wifiMode',
+    'active',
+    '--wifiBars',
+    '3',
+    '--cellularMode',
+    'active',
+    '--cellularBars',
+    '4',
+    '--batteryState',
+    'discharging',
+    '--batteryLevel',
+    '100'
+  ]);
 
   const container = simctl(['get_app_container', udid, BUNDLE_ID, 'app']).trim();
   const indexPath = join(container, 'public', 'index.html');

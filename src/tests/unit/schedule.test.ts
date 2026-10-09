@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { formatHour, formatRange, isOnNow, currentDay, SCHEDULE, DAYS } from '$lib/schedule';
-import { parseTime, parseGvizText, rowsToSchedule } from '$lib/stores/schedule.svelte';
+import { formatHour, formatRange, isOnNow, currentDay, SCHEDULE, DAYS } from '#lib/schedule.js';
+import { parseTime, parseGvizText, rowsToSchedule } from '#lib/stores/schedule.svelte.js';
 
 describe('formatHour', () => {
   it('formats fractional hours as 12-hour clock time', () => {

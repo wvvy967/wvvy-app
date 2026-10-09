@@ -1,8 +1,8 @@
 <script lang="ts">
   import { ExternalLink, Copy, Check, Mic, Radio, Globe } from '@lucide/svelte';
-  import { STATION, LISTEN } from '$lib/station';
-  import { nowPlaying } from '$lib/stores/nowplaying.svelte';
-  import { openExternal } from '$lib/native';
+  import { STATION, LISTEN } from '#lib/station.js';
+  import { nowPlaying } from '#lib/stores/nowplaying.svelte.js';
+  import { openExternal } from '#lib/native.js';
 
   let copiedUrl = $state(false);
   let copyTimer: ReturnType<typeof setTimeout> | null = null;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Play, Pause, Loader } from '@lucide/svelte';
-  import { player } from '$lib/stores/player.svelte';
+  import { player } from '#lib/stores/player.svelte.js';
 
   const label = $derived(player.showsPause ? 'Stop the live stream' : 'Play the live stream');
 </script>

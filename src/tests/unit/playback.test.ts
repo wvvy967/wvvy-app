@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { WebPlaybackEngine } from '$lib/playback/web';
-import type { PlaybackState } from '$lib/playback';
+import { WebPlaybackEngine } from '#lib/playback/web.js';
+import type { PlaybackState } from '#lib/playback/index.js';
 
 // Reaches into the engine's private audio element. Tests need to simulate the
 // media events the real network would produce (playing / error / stalled),

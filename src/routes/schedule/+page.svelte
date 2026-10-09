@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { RefreshCw } from '@lucide/svelte';
-  import { DAY_FULL, currentDay, currentHour, isOnNow, weekFrom } from '$lib/schedule';
-  import { scheduleFeed } from '$lib/stores/schedule.svelte';
+  import { DAY_FULL, currentDay, currentHour, isOnNow, weekFrom } from '#lib/schedule.js';
+  import { scheduleFeed } from '#lib/stores/schedule.svelte.js';
 
   const today = currentDay();
   // The whole week, ordered so today leads — no day picker to scroll through, and

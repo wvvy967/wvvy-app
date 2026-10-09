@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNowPlaying, hasTrack, fmtDuration, fmtLocalClock, type RawResponse } from '$lib/azuracast';
+import { parseNowPlaying, hasTrack, fmtDuration, fmtLocalClock, type RawResponse } from '#lib/azuracast.js';
 
 describe('parseNowPlaying', () => {
   it('flattens a full AzuraCast payload', () => {

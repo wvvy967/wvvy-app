@@ -1,18 +1,38 @@
 /// <reference types="vitest/config" />
-
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { SvelteKitPWA } from '@katama-labs/vite-pwa-sveltekit';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 
-// Kit options (adapter, paths, runes) live in svelte.config.js — see the note
-// there for why they can't be inline here.
+// As of SvelteKit 3, Kit options (adapter, paths, runes, preprocess) are passed
+// to the sveltekit() plugin here rather than a separate svelte.config.js — which
+// is also where @katama-labs/vite-pwa-sveltekit reads them to discover the
+// adapter's output directory so it can precache the prerendered HTML.
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    sveltekit(),
+    sveltekit({
+      preprocess: vitePreprocess(),
+      compilerOptions: {
+        // Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+        runes: true
+      },
+
+      // Capacitor ships a static bundle inside the native webview — there is no
+      // server at runtime, so every route is prerendered to its own file. No
+      // fallback: it would overwrite the prerendered index.html with an empty
+      // shell, and with every route prerendered there is nothing to fall back to.
+      adapter: adapter(),
+
+      // Native webviews load from capacitor:// (iOS) or http://localhost
+      // (Android); absolute asset paths break there, so keep everything relative.
+      paths: { relative: true }
+    }),
+
     // SvelteKitPWA rather than plain VitePWA: the static adapter writes the
     // prerendered HTML after Vite's build finishes, so a plain Workbox glob runs
     // too early and precaches zero HTML — leaving the app broken offline. This

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Copy, Check, ExternalLink } from '@lucide/svelte';
-  import { STATION, PAYPAL_URL, VENMO_URL, VENMO_HANDLE } from '$lib/station';
-  import { openExternal, openInSystemBrowser } from '$lib/native';
+  import { STATION, PAYPAL_URL, VENMO_URL, VENMO_HANDLE } from '#lib/station.js';
+  import { openExternal, openInSystemBrowser } from '#lib/native.js';
 
   const mailingText = `${STATION.legalName}\n${STATION.poBox}\n${STATION.city}`;
 

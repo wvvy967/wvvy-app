@@ -18,12 +18,12 @@ store keeps whatever was uploaded).
 
 Four screens, in upload order, across four device targets:
 
-| Set              | Device / size                     | Where it goes                    |
-| ---------------- | --------------------------------- | -------------------------------- |
-| `iphone-6.9`     | iPhone 17 Pro Max · 1320 × 2868   | App Store, iPhone (required)     |
-| `ipad-13`        | iPad Pro 13-inch (M5) · 2064 × 2752 | App Store, iPad (required¹)    |
-| `play-phone`     | emulator resized · 1080 × 1920    | Play, phone (required)           |
-| `play-tablet-10` | emulator resized · 1600 × 2560    | Play, 10" tablet (optional²)     |
+| Set              | Device / size                       | Where it goes                |
+| ---------------- | ----------------------------------- | ---------------------------- |
+| `iphone-6.9`     | iPhone 17 Pro Max · 1320 × 2868     | App Store, iPhone (required) |
+| `ipad-13`        | iPad Pro 13-inch (M5) · 2064 × 2752 | App Store, iPad (required¹)  |
+| `play-phone`     | emulator resized · 1080 × 1920      | Play, phone (required)       |
+| `play-tablet-10` | emulator resized · 1600 × 2560      | Play, 10" tablet (optional²) |
 
 - `01-player.png` — the Listen screen: cover art, now playing, transport, volume.
 - `02-schedule.png` — the weekly schedule, today first.
@@ -55,7 +55,7 @@ differently:
   a **debug** build — that's what exposes the debuggable webview.
 
 **A shot is taken once two consecutive screenshots are byte-identical.** On iOS
-that only counts after two that *differed* first — while a scene runs, the harness
+that only counts after two that _differed_ first — while a scene runs, the harness
 animates a small square in the corner, so a page mid-scene can never look settled;
 the square is removed before the screen goes still. Android awaits the scene over
 the protocol before sampling, so the marker is already gone and movement isn't

@@ -2,13 +2,13 @@
   import { onMount } from 'svelte';
   import { Volume2, TriangleAlert, Radio, ListMusic, Disc3, Cast } from '@lucide/svelte';
   import { VolumeSlider, RoutePicker, CapacitorSystemVolume } from 'capacitor-plugin-system-volume';
-  import { player } from '$lib/stores/player.svelte';
-  import { nowPlaying } from '$lib/stores/nowplaying.svelte';
-  import { hasTrack, fmtLocalClock } from '$lib/azuracast';
-  import { STATION } from '$lib/station';
-  import { isNative, platform } from '$lib/native';
-  import AlbumArt from '$lib/components/AlbumArt.svelte';
-  import PlayButton from '$lib/components/PlayButton.svelte';
+  import { player } from '#lib/stores/player.svelte.js';
+  import { nowPlaying } from '#lib/stores/nowplaying.svelte.js';
+  import { hasTrack, fmtLocalClock } from '#lib/azuracast.js';
+  import { STATION } from '#lib/station.js';
+  import { isNative, platform } from '#lib/native.js';
+  import AlbumArt from '#lib/components/AlbumArt.svelte';
+  import PlayButton from '#lib/components/PlayButton.svelte';
 
   // On iOS the volume control is a native MPVolumeView (system volume, synced to
   // the hardware buttons) overlaid on this placeholder — see the native engine.

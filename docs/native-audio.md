@@ -37,20 +37,20 @@ from native changes). Each native plugin is a dumb transport that reports
 
 ## What works right now
 
-| Surface                                | iOS | Android | Notes                                                       |
-| -------------------------------------- | --- | ------- | ---------------------------------------------------------- |
-| Web / PWA playback                     | —   | —       | `<audio>` + Media Session drives OS media keys             |
-| Native foreground playback             | ✅  | ✅      | AVPlayer / Media3 ExoPlayer via the `WvvyPlayer` plugin    |
-| Background + lock screen               | ✅  | ✅      | see the per-platform notes below                           |
-| Lock-screen artwork + track info       | ✅  | ✅      | `MPNowPlayingInfoCenter` / Media3 `MediaMetadata`          |
-| Remote controls (play/pause/stop)      | ✅  | ✅      | fed back into `wantPlay` as the single source of truth     |
-| In-app volume slider                   | ✅  | ✅      | both drive OS volume via `capacitor-plugin-system-volume`   |
-| Hardware volume-button sync            | ✅  | ✅      | both track the OS output volume                            |
-| Bluetooth / car stereo over A2DP       | ✅  | ✅      | track metadata rides along (AVRCP / MediaSession)          |
-| Cast to an external device             | ✅  | ✅      | iOS: AirPlay. Android: Chromecast — see below              |
-| Adopt already-running playback         | ❌  | ✅      | Android's webview is recreated; iOS's persists — see below |
-| CarPlay (native dashboard app)         | ❌  | —       | needs an Apple entitlement — see below                     |
-| Android Auto (native dashboard app)    | —   | ⚠️      | the service is in place; the Auto declaration is not — below |
+| Surface                             | iOS | Android | Notes                                                        |
+| ----------------------------------- | --- | ------- | ------------------------------------------------------------ |
+| Web / PWA playback                  | —   | —       | `<audio>` + Media Session drives OS media keys               |
+| Native foreground playback          | ✅  | ✅      | AVPlayer / Media3 ExoPlayer via the `WvvyPlayer` plugin      |
+| Background + lock screen            | ✅  | ✅      | see the per-platform notes below                             |
+| Lock-screen artwork + track info    | ✅  | ✅      | `MPNowPlayingInfoCenter` / Media3 `MediaMetadata`            |
+| Remote controls (play/pause/stop)   | ✅  | ✅      | fed back into `wantPlay` as the single source of truth       |
+| In-app volume slider                | ✅  | ✅      | both drive OS volume via `capacitor-plugin-system-volume`    |
+| Hardware volume-button sync         | ✅  | ✅      | both track the OS output volume                              |
+| Bluetooth / car stereo over A2DP    | ✅  | ✅      | track metadata rides along (AVRCP / MediaSession)            |
+| Cast to an external device          | ✅  | ✅      | iOS: AirPlay. Android: Chromecast — see below                |
+| Adopt already-running playback      | ❌  | ✅      | Android's webview is recreated; iOS's persists — see below   |
+| CarPlay (native dashboard app)      | ❌  | —       | needs an Apple entitlement — see below                       |
+| Android Auto (native dashboard app) | —   | ⚠️      | the service is in place; the Auto declaration is not — below |
 
 ## The iOS native engine (`WvvyPlayer`)
 

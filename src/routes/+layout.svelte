@@ -4,10 +4,10 @@
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   import { Radio, CalendarDays, HeartHandshake, Info } from '@lucide/svelte';
-  import { player } from '$lib/stores/player.svelte';
-  import { nowPlaying } from '$lib/stores/nowplaying.svelte';
-  import { initNativeShell, isNative } from '$lib/native';
-  import { registerPWA } from '$lib/pwa';
+  import { player } from '#lib/stores/player.svelte.js';
+  import { nowPlaying } from '#lib/stores/nowplaying.svelte.js';
+  import { initNativeShell, isNative } from '#lib/native.js';
+  import { registerPWA } from '#lib/pwa.js';
 
   let { children } = $props();
 
@@ -15,9 +15,9 @@
   // webview where the bundle is not served from the domain root.
   const navItems = [
     { href: resolve('/'), icon: Radio, label: 'Listen', exact: true },
-    { href: resolve('/schedule'), icon: CalendarDays, label: 'Schedule' },
-    { href: resolve('/support'), icon: HeartHandshake, label: 'Support' },
-    { href: resolve('/about'), icon: Info, label: 'About' }
+    { href: resolve('schedule'), icon: CalendarDays, label: 'Schedule' },
+    { href: resolve('support'), icon: HeartHandshake, label: 'Support' },
+    { href: resolve('about'), icon: Info, label: 'About' }
   ];
 
   function isActive(item: { href: string; exact?: boolean }) {

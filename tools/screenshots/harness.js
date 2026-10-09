@@ -129,9 +129,12 @@
       throw new Error('screenshot harness: expected 4 bottom-bar destinations, found ' + links.length);
     }
     await click(links[TABS[name]], 900);
-    await waitFor(function () {
-      return document.querySelectorAll('nav a[aria-current="page"]')[0] === links[TABS[name]];
-    }, 'the ' + name + ' tab to become current');
+    await waitFor(
+      function () {
+        return document.querySelectorAll('nav a[aria-current="page"]')[0] === links[TABS[name]];
+      },
+      'the ' + name + ' tab to become current'
+    );
   }
 
   /* ------------------------------------------------------------------ scenes */
