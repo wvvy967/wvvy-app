@@ -10,6 +10,12 @@ declare global {
     // interface PageState {}
     // interface Platform {}
   }
+
+  /** Release version, from the git tag; see `appVersion` in vite.config.ts. */
+  const __APP_VERSION__: string;
+
+  /** Short commit this bundle was built from; see `gitCommit` in vite.config.ts. */
+  const __GIT_SHA__: string;
 }
 
 export {};

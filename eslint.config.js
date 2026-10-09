@@ -11,8 +11,11 @@ export default ts.config(
   prettier,
   ...svelte.configs.prettier,
   {
+    // __APP_VERSION__ / __GIT_SHA__ are substituted by Vite's `define` at build
+    // time, so they are real globals at runtime but exist in no file for ESLint
+    // to find. Declared for TypeScript in src/app.d.ts.
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node }
+      globals: { ...globals.browser, ...globals.node, __APP_VERSION__: 'readonly', __GIT_SHA__: 'readonly' }
     }
   },
   {

@@ -3,6 +3,7 @@
   import { STATION, LISTEN } from '#lib/station.js';
   import { nowPlaying } from '#lib/stores/nowplaying.svelte.js';
   import { openExternal } from '#lib/native.js';
+  import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 
   let copiedUrl = $state(false);
   let copyTimer: ReturnType<typeof setTimeout> | null = null;
@@ -38,6 +39,13 @@
     </p>
   </header>
 
+  <!-- Appearance -->
+  <section class="mt-10">
+    <h2 class="elite text-bone/40 mb-4 text-[10px] tracking-[0.3em] uppercase">Appearance</h2>
+    <ThemeToggle />
+    <p class="elite text-bone/40 mt-2 text-center text-xs">System follows your device’s light/dark setting.</p>
+  </section>
+
   <!-- Get involved -->
   <section class="mt-10">
     <h2 class="elite text-bone/40 mb-4 text-[10px] tracking-[0.3em] uppercase">Get Involved</h2>
@@ -53,7 +61,7 @@
     <button
       type="button"
       onclick={() => openExternal(`mailto:${STATION.email}`)}
-      class="border-signal bg-signal/10 text-signal hover:bg-signal hover:text-ink mt-5 flex w-full items-center justify-between gap-4 border px-5 py-4 transition-colors"
+      class="border-signal bg-signal/10 text-signal hover:bg-signal hover:text-contrast mt-5 flex w-full items-center justify-between gap-4 border px-5 py-4 transition-colors"
     >
       <span class="stencil text-lg tracking-wider">EMAIL THE STATION</span>
       <ExternalLink size={16} />
@@ -146,4 +154,10 @@
     <Radio size={12} />
     {STATION.legalName} · {STATION.city}
   </p>
+
+  <!-- Build stamp. Deliberately quiet and unlabeled: it means nothing to almost
+       anyone who opens this screen, but it's the fastest way to pin which commit
+       a given TestFlight/Play build came from. `selectable` so the sha can be
+       long-pressed and copied in the native shell. -->
+  <p class="text-bone/20 selectable mt-4 text-center font-mono text-[10px] tracking-wide">v{__APP_VERSION__} ({__GIT_SHA__})</p>
 </div>

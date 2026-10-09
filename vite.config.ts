@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { execSync } from 'node:child_process';
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -7,12 +8,57 @@ import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 
+// Build-stamp the bundle with the version and commit it came from, exposed as
+// the compile-time constants __APP_VERSION__ / __GIT_SHA__ (see src/app.d.ts)
+// and shown at the bottom of the About screen. Pinning which commit produced a
+// given TestFlight / Play build otherwise means correlating upload timestamps
+// against workflow runs — which stops working the moment two builds go out
+// close together.
+
+function git(command: string): string | undefined {
+  try {
+    return execSync(command, { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    // No git, no .git (a tarball or a bare container) — a build must never fail
+    // for want of a label.
+    return undefined;
+  }
+}
+
+/**
+ * The version this build calls itself — the git tag, not package.json, because
+ * the tag is what actually ships (CI sets the native MARKETING_VERSION from
+ * GITHUB_REF_NAME on a tagged run; see scripts/release-*.sh). Falls back to the
+ * package version, then 'dev', for a checkout with no tags.
+ */
+function appVersion(): string {
+  const tag = process.env.GITHUB_REF_TYPE === 'tag' ? process.env.GITHUB_REF_NAME : git('git describe --tags --abbrev=0');
+  return (tag ?? process.env.npm_package_version ?? 'dev').replace(/^v/, '');
+}
+
+/**
+ * The commit this bundle was built from. GITHUB_SHA is the only reliable answer
+ * in CI, where the checkout is detached and the worktree is thrown away; locally
+ * it falls back to git, then to a placeholder.
+ */
+function gitCommit(): string {
+  const fromCi = process.env.GITHUB_SHA;
+  if (fromCi) return fromCi.slice(0, 7);
+  return git('git rev-parse --short=7 HEAD') ?? 'unknown';
+}
+
 // As of SvelteKit 3, Kit options (adapter, paths, runes, preprocess) are passed
 // to the sveltekit() plugin here rather than a separate svelte.config.js — which
 // is also where @katama-labs/vite-pwa-sveltekit reads them to discover the
 // adapter's output directory so it can precache the prerendered HTML.
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion()),
+    __GIT_SHA__: JSON.stringify(gitCommit())
+  },
   plugins: [
     tailwindcss(),
     sveltekit({

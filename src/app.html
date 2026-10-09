@@ -8,6 +8,29 @@
          padding in app.css keeps content clear of it. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#0a0908" />
+    <!-- Apply the saved (or OS-preferred) theme before first paint so there is
+         no flash of the wrong palette. Mirrors src/lib/theme.svelte.ts, which
+         takes over from mount on (and drives the native status bar). Keep the
+         storage key, class names and the light background hex in sync with it.
+         The <html> style background is overridden here too, since the inline
+         style attribute above would otherwise beat app.css. -->
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('wvvy:theme');
+          var mode = pref === 'light' || pref === 'dark' ? pref : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          var bg = mode === 'light' ? '#ece4d3' : '#0a0908';
+          var root = document.documentElement;
+          root.classList.toggle('dark', mode === 'dark');
+          root.classList.toggle('light', mode === 'light');
+          root.style.backgroundColor = bg;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', bg);
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="WVVY" />

@@ -2,6 +2,10 @@
 
 What's changed in the WVVY app.
 
+## 1.0.3 (October 9, 2026)
+
+- **Light mode.** WVVY now comes in light as well as dark. It follows your phone's appearance out of the box, or you can pin it to Light or Dark yourself under About — and your choice sticks.
+
 ## 1.0.2 (September 4, 2026)
 
 - **Giving, out in the open.** Tapping Venmo or PayPal now hands you straight to your browser to finish the gift - the stream keeps playing while you do.

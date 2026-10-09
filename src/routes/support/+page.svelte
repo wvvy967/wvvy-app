@@ -42,7 +42,7 @@
     <button
       type="button"
       onclick={() => openInSystemBrowser(VENMO_URL)}
-      class="border-signal bg-signal/10 text-signal hover:bg-signal hover:text-ink mt-5 flex w-full items-center justify-between gap-4 border px-5 py-4 transition-colors"
+      class="border-signal bg-signal/10 text-signal hover:bg-signal hover:text-contrast mt-5 flex w-full items-center justify-between gap-4 border px-5 py-4 transition-colors"
     >
       <span class="stencil text-lg tracking-wider">OPEN VENMO</span>
       <ExternalLink size={16} />

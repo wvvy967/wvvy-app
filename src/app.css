@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
 /* WVVY brand tokens, carried over from wvvy.org so the app and the site read as
    one station. The app drops the site's CRT/grain treatment — heavy fixed
    overlays cost battery and fight the OS chrome on a phone — but keeps the
@@ -17,9 +20,41 @@
   --color-blood: #8a1a0a;
   --color-amber: #f0a500;
 
+  /* Text that sits on a signal/accent FILL — near-black on the neon green in
+     dark mode, flipping to paper on the deeper green in light mode (see .light
+     below). Split out of --color-ink because ink doubles as the page
+     background, which inverts between themes, while accent-fill text must stay
+     readable against the fill in both. */
+  --color-contrast: #0a0908;
+
   --font-stencil: 'Big Shoulders Stencil', 'Impact', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-elite: 'Special Elite', 'Courier New', monospace;
+}
+
+/* Light mode — a sun-bleached / newsprint take on the same palette, matched to
+   wvvy.org. The neutral tokens (ink/tar/soot as surfaces, bone as ink-dark
+   text) invert via these variables, so the existing bg-ink / text-bone
+   utilities flip automatically; accents are kept but tuned for paper contrast.
+   Dark mode is the base @theme above and is untouched. The no-FOUC script in
+   app.html and src/lib/theme.svelte.ts add .light / .dark to <html> and drive
+   the native status bar; absent any class the dark base wins. Keep these hexes
+   in sync with THEME_BG in theme.svelte.ts / native.ts / app.html. */
+html.light {
+  color-scheme: light;
+
+  --color-ink: #ece4d3; /* page background */
+  --color-tar: #e3dac6; /* raised surface (nav bar, cards) */
+  --color-soot: #d8cdb6; /* panels */
+  --color-bone: #1a1611; /* primary text + hairlines */
+  --color-paper: #4a443a;
+  --color-smoke: #5c5648; /* muted text */
+
+  --color-signal: #42710a; /* deep enough to read as text on paper */
+  --color-signal-dim: #35590a;
+  --color-amber: #9a6200; /* darkened so text-amber stays legible */
+
+  --color-contrast: #f2ecdf; /* paper text on the deep-green fills */
 }
 
 @layer base {
@@ -29,6 +64,10 @@
     color: var(--color-bone);
     font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
+  }
+
+  html {
+    color-scheme: dark;
   }
 
   body {
@@ -53,7 +92,7 @@
 
   ::selection {
     background-color: var(--color-signal);
-    color: var(--color-ink);
+    color: var(--color-contrast);
   }
 
   /* Safe-area insets are applied once, on the layout's <main> and <nav> — never

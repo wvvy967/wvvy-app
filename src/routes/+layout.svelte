@@ -8,6 +8,7 @@
   import { nowPlaying } from '#lib/stores/nowplaying.svelte.js';
   import { initNativeShell, isNative } from '#lib/native.js';
   import { registerPWA } from '#lib/pwa.js';
+  import { theme } from '#lib/theme.svelte.js';
 
   let { children } = $props();
 
@@ -30,7 +31,7 @@
     // Web keeps native text selection; the native shells suppress it (app.css).
     if (!isNative()) document.body.classList.add('is-web');
 
-    const teardowns = [player.init(), player.bindKeyboard(), nowPlaying.start()];
+    const teardowns = [theme.init(), player.init(), player.bindKeyboard(), nowPlaying.start()];
     void initNativeShell();
     void registerPWA();
 

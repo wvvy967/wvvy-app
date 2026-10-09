@@ -12,16 +12,35 @@ export function platform(): 'ios' | 'android' | 'web' {
   return Capacitor.getPlatform() as 'ios' | 'android' | 'web';
 }
 
-/** Status bar + splash. Safe to call on web, where it does nothing. */
-export async function initNativeShell(): Promise<void> {
+/**
+ * Match the native status bar to the active theme. Light theme → dark status-bar
+ * icons on a paper background; dark theme → light icons on ink. Called by the
+ * theme store whenever the resolved theme changes. Safe (no-op) on web. Keep the
+ * background hexes in sync with THEME_BG in theme.svelte.ts.
+ */
+export async function applyThemeChrome(mode: 'light' | 'dark'): Promise<void> {
   if (!isNative()) return;
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar');
-    await StatusBar.setStyle({ style: Style.Dark });
+    // Style.Dark = light icons (for a dark bg); Style.Light = dark icons.
+    await StatusBar.setStyle({ style: mode === 'dark' ? Style.Dark : Style.Light });
     if (platform() === 'android') {
-      await StatusBar.setBackgroundColor({ color: '#0a0908' });
-      // Draw behind the status bar so the ink background runs edge to edge; the
-      // safe-area padding in app.css keeps content clear.
+      await StatusBar.setBackgroundColor({ color: mode === 'dark' ? '#0a0908' : '#ece4d3' });
+    }
+  } catch {
+    // A missing plugin shouldn't take the app down — chrome is cosmetic.
+  }
+}
+
+/** Splash + Android edge-to-edge. Safe to call on web, where it does nothing. */
+export async function initNativeShell(): Promise<void> {
+  if (!isNative()) return;
+  try {
+    if (platform() === 'android') {
+      const { StatusBar } = await import('@capacitor/status-bar');
+      // Draw behind the status bar so the background runs edge to edge; the
+      // safe-area padding in app.css keeps content clear. The style/colour
+      // themselves are set by applyThemeChrome via the theme store.
       await StatusBar.setOverlaysWebView({ overlay: true });
     }
     const { SplashScreen } = await import('@capacitor/splash-screen');
