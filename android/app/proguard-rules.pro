@@ -12,10 +12,17 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Keep line numbers but hide the source file name, so Play-symbolicated crash
+# stack traces stay readable (upload the mapping.txt with each release) without
+# leaking original filenames.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# --- Chromecast -------------------------------------------------------------
+# CastOptionsProvider is referenced only by its fully-qualified name in a
+# manifest <meta-data> string (OPTIONS_PROVIDER_CLASS_NAME), which R8 cannot
+# see as a class reference. Without this it gets renamed or stripped and
+# CastContext fails to initialize — PlaybackService then silently runs
+# local-only with no Cast. The interface rule covers it defensively.
+-keep class org.wvvy.app.CastOptionsProvider { *; }
+-keep class * implements com.google.android.gms.cast.framework.OptionsProvider { *; }

@@ -52,8 +52,21 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8 full mode: shrink + obfuscate + optimize. Off by default in a
+            // Capacitor project, which is why Play's "DEX code optimization"
+            // check reported obfuscation at 1%. The -optimize default file omits
+            // the old -dontoptimize, so R8 optimizes as well as shrinks.
+            //
+            // Keep rules that make this safe live in proguard-rules.pro. Most of
+            // the surface is covered automatically: Capacitor's AAR ships
+            // consumer rules that keep every com.getcapacitor.Plugin subclass
+            // (WvvyPlayerPlugin), and AGP auto-keeps manifest-declared
+            // components (MainActivity, PlaybackService, FileProvider). The one
+            // gap is CastOptionsProvider, named only in a manifest meta-data
+            // string — see the explicit keep in proguard-rules.pro.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (hasSigning) {
                 signingConfig = signingConfigs.release
             }
