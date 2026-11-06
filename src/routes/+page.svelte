@@ -7,6 +7,7 @@
   import { hasTrack, fmtLocalClock } from '#lib/azuracast.js';
   import { STATION } from '#lib/station.js';
   import { isNative, platform } from '#lib/native.js';
+  import { theme } from '#lib/theme.svelte.js';
   import AlbumArt from '#lib/components/AlbumArt.svelte';
   import PlayButton from '#lib/components/PlayButton.svelte';
 
@@ -29,6 +30,20 @@
   const useNativeVolume = isNative() && platform() === 'ios' && !shotMode;
   let volumeEl = $state<HTMLElement>();
   let airplayEl = $state<HTMLElement>();
+  let nativeVolume = $state.raw<VolumeSlider>();
+
+  // Native overlays don't inherit CSS variables. Match app.css's signal,
+  // smoke and bone tokens so the track and thumb contrast with either theme.
+  const volumeStyle = $derived({
+    minimumTrackColor: theme.resolved === 'light' ? '#42710a' : '#c4ff3d',
+    maximumTrackColor: theme.resolved === 'light' ? '#5c5648' : '#5a5852',
+    thumbColor: theme.resolved === 'light' ? '#1a1611' : '#ece5d8',
+    thumbRadius: 14
+  });
+
+  $effect(() => {
+    if (nativeVolume) void nativeVolume.setStyle(volumeStyle).catch(() => {});
+  });
 
   // Android has no native-overlay equivalent: the capacitor-plugin-system-volume
   // methods drive the system media volume (AudioManager) and open the Cast
@@ -72,12 +87,10 @@
         VolumeSlider.create({
           id: 'wvvy-volume',
           element: volumeEl,
-          style: {
-            minimumTrackColor: '#c4ff3d', // signal
-            maximumTrackColor: '#5a5852', // smoke
-            thumbColor: '#ece5d8', // bone
-            thumbRadius: 14
-          }
+          style: volumeStyle
+        }).then((slider) => {
+          if (!destroyed) nativeVolume = slider;
+          return slider;
         })
       );
     }
