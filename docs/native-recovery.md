@@ -55,13 +55,13 @@ service.
 
 Invert the boundary for the native engines only:
 
-| Responsibility | Today | Proposed |
-| --- | --- | --- |
-| User intent (tap play/stop in the app) | JS → plugin | JS → plugin (unchanged) |
-| Reconnect / backoff policy | **JS** | **Native** (per platform) |
-| Remote transport actuation (lock screen/car) | iOS: JS · Android: session | Native (both) |
-| "Should audio be playing" (`wantPlay`) | JS owns | **Native owns**, mirrored to JS |
-| UI state (status, error, playing) | JS owns | Native emits → **JS mirrors** |
+| Responsibility                               | Today                      | Proposed                        |
+| -------------------------------------------- | -------------------------- | ------------------------------- |
+| User intent (tap play/stop in the app)       | JS → plugin                | JS → plugin (unchanged)         |
+| Reconnect / backoff policy                   | **JS**                     | **Native** (per platform)       |
+| Remote transport actuation (lock screen/car) | iOS: JS · Android: session | Native (both)                   |
+| "Should audio be playing" (`wantPlay`)       | JS owns                    | **Native owns**, mirrored to JS |
+| UI state (status, error, playing)            | JS owns                    | Native emits → **JS mirrors**   |
 
 After this, `NativePlaybackEngine` still receives the user's taps and forwards them
 as intent, but it no longer runs a retry loop or decides when playback has failed.

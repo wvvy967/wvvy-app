@@ -1,7 +1,7 @@
 {
   "name": "wvvy-app",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "#Core": "Web development and build",
@@ -51,7 +51,7 @@
     "all": "npm run format && npm run lint && npm run check && npm run test && npm run build"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
+    "@capacitor/assets": "^4.0.0",
     "@capacitor/cli": "^8.4.2",
     "@eslint/js": "^10.0.1",
     "@katama-labs/vite-pwa-sveltekit": "^2.0.0",
@@ -59,7 +59,7 @@
     "@sveltejs/kit": "^3.0.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/vite": "^4.3.3",
-    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/svelte": "^5.4.2",
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^5.0.3",
@@ -67,7 +67,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.20.0",
     "globals": "^17.7.0",
-    "jsdom": "^30.1.2",
+    "jsdom": "^31.0.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.9.5",
     "prettier-plugin-svelte": "^4.1.1",

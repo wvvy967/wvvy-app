@@ -2,6 +2,10 @@
 
 What's changed in the WVVY app.
 
+## 1.0.4 (November 21, 2026)
+
+- Stability improvements.
+
 ## 1.0.3 (October 9, 2026)
 
 - **Light mode.** WVVY now comes in light as well as dark. It follows your phone's appearance out of the box, or you can pin it to Light or Dark yourself under About — and your choice sticks.
